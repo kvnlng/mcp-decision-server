@@ -1,6 +1,6 @@
 # Serving decisions to agents
 
-`decision-server` offers a scenario's decisions as MCP tools ([README](../README.md#tools)). It loads CLM once at
+`decision-server` offers a scenario's decisions as MCP tools ([scenario.md](scenario.md#tools)). It loads CLM once at
 start-up and answers calls until stopped; loading messages go to stderr. The flags, the identity-provider steps, the
 exact rules of tool selection and the trace format and measurements are in [serving-reference.md](serving-reference.md).
 

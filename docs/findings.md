@@ -53,6 +53,9 @@ The H100 decided the whole day at 50.1 a second.
 
 | Finding | Figures |
 |---|---|
+| Train CLM first | Service desk, 55 held-back generated examples: 51% of routes right as released, 98% trained |
+| A GPU makes CLM fast | The day replayed: 3.6 decisions a second on the Mac, 19.2 on an A100 80 GB, 51.1 on an H100 80 GB SXM (torch, bf16) |
+| CLM's probabilities are relative | Tune thresholds on labelled cases |
 | Many bookings go to a person | Threshold 0.6: 5% of the day's bookings got a wrong route not marked uncertain; 46% were marked uncertain, most answered rightly. `decision-evaluate --cases` puts the lowest threshold keeping the routes 90% right at 0.63: better-trained heads are the fix, not a lower threshold |
 | Claude was more accurate, and on the Mac faster | 600 unseen cases: Sonnet 5.5 82% of routes right, Haiku 5.5 79%, CLM 75%; Sonnet took 267 ms a decision, CLM 300 ms. CLM costs nothing per decision, keeps the messages on the machine and marks most of its wrong answers uncertain |
 | `check_call` is weak as a yes or no | A rebooking and a refund for the same passenger: it approved the right one and refused the wrong one for 114 of 200; compared with each other, 169 were told apart. `decide` was right for 162 and marks most of its mistakes uncertain |
