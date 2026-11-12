@@ -37,10 +37,11 @@ the examples, building your own and connecting agents. What we measured, includi
 | Path | Holds |
 |---|---|
 | `src/mcp_decision_server/` | The framework and the `decision-*` commands |
+| `src/mcp_decision_server/portal/` | [The portal](docs/portal.md): a page `decision-server` serves for administering a server, with a chat (Ask) |
 | `examples/` | Six worked examples ([the list](examples/README.md)) |
 | `docs/` | The guides, starting with [getting started](docs/getting-started.md) |
-| `src/mcp_decision_server/portal/` | [The portal](docs/portal.md): a page `decision-server` serves for administering a server, with a chat (Ask) |
-| `tests/` | `uv run pytest`; `uv run pytest -m slow` also loads CLM (`CLM_TEST_BACKEND=torch` for torch) |
+| `AGENTS.md` | Instructions for a coding agent helping you build your own server in a clone |
+| `tests/` | `uv run pytest` runs the fast tests; `-m slow` the ones that load CLM or need Neo4j (`CLM_TEST_BACKEND=torch` for torch); `-m postgres` the ones that need PostgreSQL |
 
 ## Licence
 
