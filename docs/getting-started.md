@@ -582,13 +582,16 @@ which only the first terminal has.
    Loading CLM takes a little while. Wait for `CLM is using its trained heads from scenario.heads` and
    `Serving MCP at http://127.0.0.1:8001/mcp`. If it stops at once with "set DECISION_SERVER_KEY to the key
    callers must send", the key is not set in this terminal.
-3. **Open a third terminal** in the repository and give it the same key:
+3. **Open a third terminal**, go to the repository, and give it the same key. A new terminal starts in your home
+   folder, and `ollmcp` saves servers for the folder it runs in, so the `cd` matters:
 
    ```bash
+   cd clm-decision-agent        # or wherever you cloned it
    export DECISION_SERVER_KEY=<the key you copied>
    ```
 
-4. **Tell the harness where the desk is.** `offsite` is saved from section 6; this adds `desk` beside it:
+4. **Tell the harness where the desk is.** `offsite` is saved for the repository from section 6; this adds `desk`
+   beside it:
 
    ```bash
    uvx --from mcp-client-for-ollama==0.35.1 ollmcp mcp add --transport http \
@@ -747,6 +750,9 @@ When you are done, type `/q` in `ollmcp` and stop the desk (Ctrl-C). To remove t
 uvx --from mcp-client-for-ollama==0.35.1 ollmcp mcp remove offsite
 uvx --from mcp-client-for-ollama==0.35.1 ollmcp mcp remove desk
 ```
+
+If one says "No server named 'desk' found in any scope", it was saved from another folder, most likely your home
+folder: run the same command from there.
 
 ## Where next
 
