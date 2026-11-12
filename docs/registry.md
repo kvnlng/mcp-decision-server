@@ -89,6 +89,6 @@ This was checked on a Mac with the registry's release 1.8.6 and PostgreSQL 18 fr
 5. Find it: `curl "http://localhost:8090/v0.1/servers?search=decision-tariff"` gives the entry, with its address and the
    header it needs. The MCP Inspector lists the server's tools with that header
    (`--cli <address> --transport http --header "Authorization: Bearer <the key>" --method tools/list`;
-   [serving](serving.md#inspecting-a-server)); with the key in `DECISION_SERVER_KEY`, `decision-agent <address>
-   "QUESTION"` asks a model to use them. The internal host name does not resolve on a laptop, so in the check the client
-   was pointed at the local server for that name.
+   [serving](serving.md#inspecting-a-server)); with the key in `DECISION_SERVER_KEY`,
+   `decision-agent <address> "QUESTION"` asks a model to use them. The internal host name does not resolve on a
+   laptop, so in the check the client was pointed at the local server for that name.

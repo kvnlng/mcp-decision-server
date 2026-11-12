@@ -1,8 +1,8 @@
 """The jobs that change an environment, one at a time, and what the portal keeps out of them.
 
 Jobs (`decision-load-documents`, `decision-derive`) run as child processes from a worker thread, so a long one blocks no
-page; one lock covers them and every derived-layer write. A child's environment holds neither the portal's key nor the key
-agents send the server.
+page; one lock covers them and every derived-layer write. A child's environment holds neither the portal's key nor the
+key agents send the server.
 """
 from __future__ import annotations
 

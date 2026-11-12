@@ -17,8 +17,8 @@ now, asking no model, and approves by script only what passes. compare evaluates
 key, the hand-written rules/*.dmn and graph/nodes.csv, and writes runs/measure/second_key.json: above all, the
 entries that passed the check and are wrong, which a person approving them would have had to catch. second checks a
 copy of a kept layer again with a second reading by MODEL (decision-derive check, in
-runs/measure/second-FIRST-by-MODEL/), asking no first model and leaving the kept layer as it is, and counts against the second key the wrong entries it
-caught and the right ones it flagged, in runs/measure/second_reading.json.
+runs/measure/second-FIRST-by-MODEL/), asking no first model and leaving the kept layer as it is, and counts against the
+second key the wrong entries it caught and the right ones it flagged, in runs/measure/second_reading.json.
 
 run asks decision-agent each question in each setup, on each backend, and writes each answer to runs/measure/, which git
 ignores: `none` with --no-tools, `rules` with environment_without_documents.toml, `documents` with environment.toml,

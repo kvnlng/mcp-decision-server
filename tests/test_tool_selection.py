@@ -153,7 +153,7 @@ def test_an_unknown_tool_is_one_line_naming_the_tools():
         build_environment_server(load(), serve=Serve(tools=("query_nothing",)))
 
 
-def test_clm_server_reads_an_environments_serve_table(tmp_path, capsys):
+def test_decision_server_reads_an_environments_serve_table(tmp_path, capsys):
     folder = tmp_path / "tariff"
     shutil.copytree(HANDBOOK.parent / "tariff", folder, ignore=shutil.ignore_patterns("runs"))
     toml = folder / "environment.toml"

@@ -21,7 +21,7 @@ def finished(client) -> dict:
     raise AssertionError("the job did not finish")
 
 
-def test_load_runs_clm_load_documents_with_the_contract_arguments(client, environment, runner, server):
+def test_load_runs_decision_load_documents_with_the_contract_arguments(client, environment, runner, server):
     (environment.parent / "handbook.jsonl").write_text('{"id": "hb-1"}\n')
     token = sign_in(client)
     page = client.get("/documents").text
@@ -83,7 +83,7 @@ def test_an_upload_that_cannot_be_saved_leaves_the_file_it_would_replace_as_it_w
 
 
 @pytest.mark.parametrize("installed", [{"decision-server", "decision-derive"}])
-def test_an_upload_is_not_saved_when_clm_load_documents_is_not_installed(client, environment, runner):
+def test_an_upload_is_not_saved_when_decision_load_documents_is_not_installed(client, environment, runner):
     token = sign_in(client)
     response = upload(client, token, "handbook.jsonl", b'{"id": "hb-1"}\n')
     assert response.status_code == 409 and "decision-load-documents is not installed" in response.text
@@ -116,7 +116,7 @@ def test_an_upload_whose_save_is_cut_off_leaves_no_partial_file(client, environm
     assert not runner.seen
 
 
-def test_derive_runs_clm_derive_run(client, environment, runner):
+def test_derive_runs_decision_derive_run(client, environment, runner):
     token = sign_in(client)
     post(client, "/documents/derive", token, {"collection": "handbook", "backend": "claude",
                                               "model": "claude-opus-5-5"})
@@ -130,7 +130,7 @@ def test_derive_runs_clm_derive_run(client, environment, runner):
 
 
 @pytest.mark.parametrize("installed", [{"decision-server", "decision-load-documents"}])
-def test_without_clm_derive_the_page_says_derivation_is_not_available(client, runner):
+def test_without_decision_derive_the_page_says_derivation_is_not_available(client, runner):
     token = sign_in(client)
     assert "Derivation is not available yet" in client.get("/documents").text
     page = post(client, "/documents/derive", token, {"collection": "handbook"}).text

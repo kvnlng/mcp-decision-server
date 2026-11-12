@@ -244,7 +244,7 @@ def test_set_check_refuses_conflicts(tmp_path):
 
 
 @pytest.mark.parametrize("kind, name", [("decisions", "carryover_limit"), ("facts", "k401_2026.match_cap")])
-def test_a_person_cannot_set_checked_only_clm_derive_check_does(tmp_path, kind, name):
+def test_a_person_cannot_set_checked_only_decision_derive_check_does(tmp_path, kind, name):
     derived.write(tmp_path, _layer())
     derived.set_status(tmp_path, kind, name, "rejected", by="kevin")
     with pytest.raises(derived.DerivedError,

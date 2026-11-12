@@ -167,7 +167,7 @@ async def test_trace_has_size_and_key_id(write_environment, tmp_path):
     assert record["result_size_bytes"] == len(json.dumps(result.structured_content).encode())
 
 
-def test_clm_server_applies_the_file_beside_the_environment_and_stops_on_a_bad_one(write_environment, monkeypatch,
+def test_decision_server_applies_the_file_beside_the_environment_and_stops_on_a_bad_one(write_environment, monkeypatch,
                                                                                    capsys):
     toml = write_environment()
     built = {}

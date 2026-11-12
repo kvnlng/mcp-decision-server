@@ -5,9 +5,9 @@ second port of the same process, so it sees exactly what agents see. It is part 
 (`mcp_decision_server.portal`) and runs from a checkout with [uv](https://docs.astral.sh/uv/).
 
 ```bash
-export DECISION_SERVER_KEY=<a long random key>                         # the agents' key
+export DECISION_SERVER_KEY=<a long random key>                              # the agents' key
 export DECISION_PORTAL_KEY=<another long random key>                        # signs in to the page
-set -a; . ./.postgres-local.env; set +a                                # if the environment has documents
+set -a; . ./.postgres-local.env; set +a                                     # if the environment has documents
 uv run decision-server examples/handbook/environment.toml --http --portal 8400
 ```
 

@@ -76,7 +76,7 @@ def test_a_conflict_shows_the_supplied_value_and_can_be_resolved(client, environ
     assert post(client, f"/review/conflicts/{FACT}/approve", token).status_code == 400
 
 
-def test_a_correction_clears_the_check_sets_proposed_and_runs_clm_derive_check(client, environment, runner):
+def test_a_correction_clears_the_check_sets_proposed_and_runs_decision_derive_check(client, environment, runner):
     token = sign_in(client)
     response = post(client, f"/review/facts/{FACT}/correct", token, {"value": "6300", "note": "as the plan says"})
     assert response.status_code == 200
@@ -176,7 +176,7 @@ def test_an_entry_and_a_document_whose_names_hold_a_slash_can_be_acted_on(client
 
 
 @pytest.mark.parametrize("installed", [{"decision-server", "decision-load-documents"}])
-def test_a_correction_without_clm_derive_says_so_as_an_error(client, environment):
+def test_a_correction_without_decision_derive_says_so_as_an_error(client, environment):
     token = sign_in(client)
     response = post(client, f"/review/facts/{FACT}/correct", token, {"value": "6300"})
     assert response.status_code == 200 and layer_of(environment)["facts"][FACT]["value"] == 6300

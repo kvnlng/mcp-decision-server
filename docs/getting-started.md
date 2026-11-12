@@ -83,7 +83,7 @@ After an edit to the environment's files, click the slider off and on again to r
 Stop the Inspector (Ctrl-C). Make two keys, one for agents and one for you, then start the server:
 
 ```bash
-export DECISION_SERVER_KEY=$(openssl rand -hex 32)    # agents send this
+export DECISION_SERVER_KEY=$(openssl rand -hex 32)         # agents send this
 export DECISION_PORTAL_KEY=$(openssl rand -hex 32)         # you sign in to the portal with this
 echo "$DECISION_PORTAL_KEY"
 uv run decision-server examples/tariff/environment.toml --http --portal 8400

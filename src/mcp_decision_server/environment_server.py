@@ -150,8 +150,8 @@ def _derived(env: Environment) -> dict:
             f"Only derived entries with status {', '.join(env.admit)} are admitted.")
     reader = env.second_reader
     second = (f"decision-derive check makes a second reading by {reader['model']}: it derives each entry again from "
-              "its document, without the first answer, and an entry it disagrees with fails the check. Agreement is not "
-              "proof: two readings can make the same mistake." if reader else
+              "its document, without the first answer, and an entry it disagrees with fails the check. Agreement is "
+              "not proof: two readings can make the same mistake." if reader else
               "There is no second reading ([derived] names no second_reader): each entry passed only the mechanical "
               "check, which cannot tell whether a figure is in the right place.")
     return {"admit": list(env.admit), "note": note, "second_reader": reader, "second_reading": second,

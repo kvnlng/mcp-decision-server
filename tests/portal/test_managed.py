@@ -81,7 +81,7 @@ async def test_a_failed_prepare_runs_no_job_and_frees_the_lock():
 
 
 @pytest.mark.anyio
-async def test_a_missing_clm_derive_is_reported_not_raised():
+async def test_a_missing_decision_derive_is_reported_not_raised():
     jobs = managed.Jobs(runner=recorder(), script=lambda name: None)
     job = await jobs.start("derive", ["decision-derive", "run", "env.toml", "handbook"])
     assert not job.running and "decision-derive is not installed" in job.output and jobs.current() is None

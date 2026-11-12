@@ -68,7 +68,7 @@ These are small tests, said plainly in [docs/findings.md](docs/findings.md):
 
 | Path | Holds |
 |---|---|
-| `src/mcp_decision_server/` | The framework and the `clm-*` commands |
+| `src/mcp_decision_server/` | The framework and the `decision-*` commands |
 | `examples/` | Six worked examples ([the list](examples/README.md)) |
 | `docs/` | The guides, starting with [getting started](docs/getting-started.md) |
 | `src/mcp_decision_server/portal/` | [The portal](docs/portal.md): a page `decision-server` serves for administering a server, with a chat (Ask) |
