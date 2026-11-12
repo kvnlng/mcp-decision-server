@@ -17,16 +17,19 @@ the decision comes back with its reasons.
 
 Three principles:
 
-- **You supply the rules, or they are derived and checked; agents only choose.** Information reaches a decision
-  only through your tools. A derived rule decides only once it passes its checks and a person approves it; every
-  result says whether its rule was supplied or derived.
-- **Every decision is checkable.** Every step is traced, every figure checked and a decision record kept.
-- **Small and local where you can.** CLM picks among options on a Mac or one GPU: cheap, and your data stays with
-  you. Claude was more accurate in the benchmark.
+- **Your rules and data decide; agents only choose.** You write every query, rule, calculation and option, or derive
+  a rule from your documents, and it decides only once it passes its checks and a person approves it. An agent
+  chooses among what you offer: it never writes a rule or invents an option, and information reaches a decision only
+  through your tools.
+- **Every decision can be checked.** Every step is traced and a decision record kept, and every result says whether
+  its rule was supplied or derived. Without judges, weighing runs no language model, so the same inputs give the same
+  decision. The reference agent checks every figure in its answer against the tools' results.
+- **It runs where your data is.** The server runs on your own machine or network. Weighing needs no model or GPU
+  unless it uses judges, and routing's CLM runs on a Mac or one GPU. Nothing leaves the server except through your
+  tools; a hosted model, as the agent or deriving rules, sees only what is sent to it.
 
 **[Getting started](docs/getting-started.md)** covers your environment and the two styles of decision, installing,
-the examples, building your own and connecting agents. It is **not for clinical decisions**, and a scenario's server
-runs its acting tools without asking.
+the examples, building your own and connecting agents.
 
 ## Tools
 
