@@ -2,7 +2,7 @@
 
 An MCP server framework that gives agents trustworthy decisions from your own rules and data.
 
-**A framework, not a finished product.** You write the tools an AI agent uses to reach the resources where your
+**A framework, not an off-the-shelf product.** You write the tools an AI agent uses to reach the resources where your
 information already lives (databases, knowledge graphs, rule tables, issue trackers, public data) and the rules
 that combine them. The framework serves them over [MCP](https://modelcontextprotocol.io) as a **decision server**:
 it runs them, checks them and traces every step. It holds no rules or data of its own and decides nothing until
@@ -25,8 +25,8 @@ Three principles:
   you. Claude was more accurate in the benchmark.
 
 **[Getting started](docs/getting-started.md)** covers your environment and the two styles of decision, installing,
-the examples, building your own and connecting agents. This is a prototype, not used in production and **not for
-clinical decisions**; a scenario's server runs its acting tools without asking.
+the examples, building your own and connecting agents. It is **not for clinical decisions**, and a scenario's server
+runs its acting tools without asking.
 
 ## Tools
 
