@@ -1,7 +1,7 @@
 # Choosing and pointing at models
 
 A scenario names two models: CLM, which the decision server uses for every decision, and a language model, which only
-`clm-synthesize` uses to write training examples.
+`decision-synthesize` uses to write training examples.
 
 ## CLM
 
@@ -80,9 +80,9 @@ they were made for (`Qwen/Qwen3-8B`, at the authors' revision), at full precisio
 
 ### Heads belong to one backend
 
-Heads trained with `clm-train` record the backend and CLM build they were trained with. The MLX build's encoder is
+Heads trained with `decision-train` record the backend and CLM build they were trained with. The MLX build's encoder is
 compressed and the torch backend's is not, so heads trained on one do not fit the other. The server checks this, says
-so at start-up and uses the released heads until you run `clm-train` on the machine you serve from. There is no
+so at start-up and uses the released heads until you run `decision-train` on the machine you serve from. There is no
 conversion; training takes under a minute. The heads file has the same layout for both backends.
 
 ## The language model

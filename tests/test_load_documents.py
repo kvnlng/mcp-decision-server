@@ -6,8 +6,8 @@ import json
 import pytest
 from fake_documents import FakeEmbedder, FakeStore
 
-from clm_decision import load_documents
-from clm_decision.documents import Collection
+from mcp_decision_server import load_documents
+from mcp_decision_server.documents import Collection
 
 CASES = Collection("cases", "Opinions", {"state": "string", "year": "integer", "decided": "date"}, "toy-embed")
 GOOD = {"id": "case-a", "citation": "100 S.W.3d 1", "title": "Case A",

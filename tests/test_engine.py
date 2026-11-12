@@ -6,10 +6,11 @@ import threading
 import pytest
 from conftest import ENV_FUNCTIONS, ENV_TOML, JUDGE_TOML, limit_dmn
 
-from clm_decision.clm_common import ClmError
-from clm_decision.engine import StepError, Steps, run_calculation, run_decision, run_judgement, run_query, run_scenario
-from clm_decision.environment import load_environment
-from clm_decision.scenario import ScenarioError
+from mcp_decision_server.clm_common import ClmError
+from mcp_decision_server.engine import (StepError, Steps, run_calculation, run_decision, run_judgement, run_query,
+                                        run_scenario)
+from mcp_decision_server.environment import load_environment
+from mcp_decision_server.scenario import ScenarioError
 
 
 @pytest.fixture
@@ -215,7 +216,7 @@ def test_a_judgement_refused_for_its_text_is_recorded(write_environment, fake_cl
 
 
 def test_a_clm_that_cannot_load_fails_the_branch(write_environment, monkeypatch):
-    from clm_decision import clm_router  # pylint: disable=import-outside-toplevel
+    from mcp_decision_server import clm_router  # pylint: disable=import-outside-toplevel
 
     def broken(*args, **kwargs):
         raise ClmError("The mlx backend needs an Apple Silicon Mac.")
@@ -234,7 +235,7 @@ def judging_branch(steps, params, levers):
 
 
 def test_a_multiline_load_error_is_one_line(write_environment, monkeypatch):
-    from clm_decision import clm_router  # pylint: disable=import-outside-toplevel
+    from mcp_decision_server import clm_router  # pylint: disable=import-outside-toplevel
 
     def missing(*args, **kwargs):
         raise RuntimeError("404 Client Error.\nRepository Not Found for url: https://huggingface.co/x\nCheck the name.")
@@ -254,8 +255,8 @@ def test_clm_heads_is_refused_for_judges(write_environment):
 def test_a_judge_without_the_clm_extra_says_how_to_install_it(write_environment, monkeypatch):
     import sys  # pylint: disable=import-outside-toplevel
     monkeypatch.setitem(sys.modules, "huggingface_hub", None)
-    monkeypatch.delitem(sys.modules, "clm_decision.clm_router")
-    monkeypatch.delattr("clm_decision.clm_router")             # so that `from . import clm_router` imports it again
+    monkeypatch.delitem(sys.modules, "mcp_decision_server.clm_router")
+    monkeypatch.delattr("mcp_decision_server.clm_router")    # so that `from . import clm_router` imports it again
     env = load_environment(write_environment(ENV_TOML + JUDGE_TOML))
     with pytest.raises(StepError, match=r"^judge risk: CLM could not load: CLM is not installed \(huggingface_hub"):
         run_judgement(env, "risk", {"text": "a strike is called"})

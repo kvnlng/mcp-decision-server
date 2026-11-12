@@ -7,13 +7,13 @@ reference for every setting named here.
 ## 1. Start a folder
 
 ```bash
-uv run clm-new-scenario my_scenario
+uv run decision-new-scenario my_scenario
 ```
 
 This writes a small working scenario for a shop's customer messages: `scenario.toml` with three routes, a question, a
 rule, an informing tool and an acting tool; `my_scenario_tools.py` with the two tools; `scenario.cases.jsonl`, a few
 labelled cases. The `[clm]` block suits the machine: MLX on a Mac with Apple Silicon, torch elsewhere. See it decide
-with the `clm-evaluate` command of step 7, then edit each part into your own.
+with the `decision-evaluate` command of step 7, then edit each part into your own.
 
 ## 2. Write the policy as routes
 
@@ -60,7 +60,7 @@ apologise first"). The example has four questions and three rules.
 Training needs labelled examples of each route, ideally with the right answer to each question and the right option.
 Checking needs **cases whose wording training never saw**, or the check measures memory.
 
-- Without data, `clm-synthesize` has a language model write examples for each route.
+- Without data, `decision-synthesize` has a language model write examples for each route.
 - The example generated its own: a local model wrote a pool of message lines, and `write_examples.py` assembled 1,500
   examples from one simulated day and 600 check cases from another, keeping a fifth of the pool's lines for the check
   cases only.
@@ -70,24 +70,24 @@ Checking needs **cases whose wording training never saw**, or the check measures
 ## 7. Train and check
 
 ```bash
-uv run clm-train my_scenario/scenario.toml
-uv run clm-evaluate my_scenario/scenario.toml --cases my_scenario/scenario.cases.jsonl
+uv run decision-train my_scenario/scenario.toml
+uv run decision-evaluate my_scenario/scenario.toml --cases my_scenario/scenario.cases.jsonl
 ```
 
-`clm-evaluate --cases` decides every case through the server's own steps, with your tools but no acting tool. It
+`decision-evaluate --cases` decides every case through the server's own steps, with your tools but no acting tool. It
 reports each route, option and answer per class, accuracy by confidence, and the lowest `confidence_threshold` at
 which the routes kept are 90% right. It lists each case that got the wrong route, with its line in the file, the
 route it got and its text. A score's answer counts as its likeliest level, as in training. On the example,
 trained heads took the route from 17% to 75% on unseen cases; the suggested threshold was 0.63, against the 0.6 it
 uses. People's corrections of real decisions are training data too ([fine-tuning.md](fine-tuning.md));
-`clm-evaluate` without `--cases` replays them.
+`decision-evaluate` without `--cases` replays them.
 
 ## 8. Serve it and measure
 
 ```bash
-uv run clm-server my_scenario/scenario.toml --trace runs/my.trace.jsonl
+uv run decision-server my_scenario/scenario.toml --trace runs/my.trace.jsonl
 ```
 
-`--trace` records where each call's time went; `clm-trace-report` sums it up ([serving.md](serving.md)). The
+`--trace` records where each call's time went; `decision-trace-report` sums it up ([serving.md](serving.md)). The
 example's `replay_day.py` sends a whole day through `decide_many` as a coordinator would and keeps a scoreboard;
 [findings.md](findings.md) records what its traces showed.

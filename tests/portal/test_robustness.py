@@ -9,7 +9,7 @@ from pathlib import Path
 
 import pytest
 
-from clm_decision.portal import layer, live, web
+from mcp_decision_server.portal import layer, live, web
 from .conftest import post, sign_in
 from .test_review import FACT, GOOD_DMN, layer_of
 
@@ -77,7 +77,7 @@ def test_the_banner_shows_only_while_testing(client, server):
 
 def test_the_dev_group_installs_the_extras_the_portal_needs():
     project = tomllib.loads((Path(__file__).parents[2] / "pyproject.toml").read_text())
-    main = next(item for item in project["dependency-groups"]["dev"] if item.startswith("clm-decision-agent"))
+    main = next(item for item in project["dependency-groups"]["dev"] if item.startswith("mcp-decision-server"))
     assert {"documents", "agent", "neo4j"} <= {extra.strip() for extra in main[main.index("[") + 1:main.index("]")]
                                                 .split(",")}
 

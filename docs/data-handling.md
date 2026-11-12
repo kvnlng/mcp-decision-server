@@ -14,10 +14,10 @@ The text a caller sends with `decide`, `decide_many`, `check_call` or `correct` 
 | `correct`, in review mode only | The corrections record, `<scenario>.corrections.jsonl` | Owner only (below) | `[record]`; no review mode |
 | Corrections you train from | The examples file and the trained heads, unencrypted | Whoever reads those files | See below |
 | Only with `--trace FILE --trace-text` | The trace: a scenario's `decide`, `decide_many`, `check_call` and `correct` text; an environment's tool-call arguments. Without `--trace-text` the trace has no text | Owner only, like the record | Leave `--trace-text` off |
-| The server's key, on every HTTP call | As a bearer header. `clm-agent` sends it over HTTPS or to this computer only, never over plain http to another host | Key holders: they can call the server and see its decisions and what its informing tools return | Keep the key secret; HTTPS when callers are elsewhere ([serving.md](serving.md)) |
+| The server's key, on every HTTP call | As a bearer header. `decision-agent` sends it over HTTPS or to this computer only, never over plain http to another host | Key holders: they can call the server and see its decisions and what its informing tools return | Keep the key secret; HTTPS when callers are elsewhere ([serving.md](serving.md)) |
 
 Nothing leaves the machine except what your tools send. Outside review mode and `--trace-text`, the server saves no
-request text. The language model in `[generator]` is used only by `clm-synthesize`, which sends it the scenario's
+request text. The language model in `[generator]` is used only by `decision-synthesize`, which sends it the scenario's
 route descriptions and examples, never requests.
 
 ## Keep sensitive text out
@@ -40,10 +40,10 @@ key_file = "record.key"               # encrypt each line with this key ...
 
 - The record, and a folder made for it, are created readable by their owner only. In review mode the server also
   makes an older record so.
-- `uv run clm-record newkey record.key` makes a key. Keep it out of version control and back it up: a record written
-  with a key cannot be read without it.
-- `uv run clm-record purge <scenario>` deletes the record after asking, and only a file that is plainly a corrections
-  record, since `path` can name any file.
+- `uv run decision-record newkey record.key` makes a key. Keep it out of version control and back it up: a record
+  written with a key cannot be read without it.
+- `uv run decision-record purge <scenario>` deletes the record after asking, and only a file that is plainly a
+  corrections record, since `path` can name any file.
 
 ## What encryption does not do
 
@@ -53,7 +53,8 @@ key_file = "record.key"               # encrypt each line with this key ...
   that text; store them as carefully as the record.
 - There is no key rotation. To change the key, purge the record and start a new one.
 - In review mode the server will not start on a record that has lines under another key, since saving more would leave
-  a file no single key can read. Without review mode, the server and `clm-train` say how many lines they could not read.
+  a file no single key can read. Without review mode, the server and `decision-train` say how many lines they could not
+  read.
 - Lines written before you set a key stay unencrypted in the same file.
 - Server addresses in a scenario may not contain a user name or password; put a key in the variable named by
   `api_key_env`, which is never printed.

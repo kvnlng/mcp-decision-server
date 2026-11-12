@@ -1,5 +1,5 @@
 # The handbook example with its rules and plan figures derived from the handbook instead of written by hand: the five
-# decisions and the plan's six terms are slots, filled by `clm-derive run` and admitted once approved (README.md,
+# decisions and the plan's six terms are slots, filled by `decision-derive run` and admitted once approved (README.md,
 # docs/environment.md). The employees' records stay supplied, and the plan node keeps its id but not its figures.
 # Only the two-tier shape of the match is written by hand, in tiered_match. Not HR, tax or legal advice.
 
@@ -22,7 +22,7 @@ edges = "graph/edges.csv"
 
 [documents]
 backend = "postgres"
-password_env = "CLM_DOCUMENTS_PASSWORD"
+password_env = "DECISION_DOCUMENTS_PASSWORD"
 
 [collections.handbook]
 description = """Meridian's employee handbook (made up), one document per policy, its numbered parts as passages \

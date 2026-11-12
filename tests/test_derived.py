@@ -6,7 +6,7 @@ import json
 
 import pytest
 
-from clm_decision import derived
+from mcp_decision_server import derived
 
 
 def _layer() -> dict:
@@ -59,7 +59,7 @@ def test_an_entry_that_failed_its_check_cannot_be_approved(tmp_path):
 
 
 def test_a_proposed_entry_cannot_be_approved_even_with_an_old_passing_check(tmp_path):
-    # A correction sets the entry back to proposed; until clm-derive check runs, its old check proves nothing
+    # A correction sets the entry back to proposed; until decision-derive check runs, its old check proves nothing
     layer = _layer()
     layer["decisions"]["carryover_limit"]["status"] = "proposed"
     derived.write(tmp_path, layer)
@@ -105,7 +105,7 @@ def test_set_check_moves_a_passing_proposed_entry_to_checked_and_records_who(tmp
     derived.write(tmp_path, layer)
     entry = derived.set_check(tmp_path, "decisions", "carryover_limit", {"passed": True, "failures": []})
     assert entry["status"] == "checked"
-    assert entry["check"]["by"] == "clm-derive check" and entry["check"]["at"] and entry["check"]["passed"]
+    assert entry["check"]["by"] == "decision-derive check" and entry["check"]["at"] and entry["check"]["passed"]
     assert derived.read(tmp_path)["decisions"]["carryover_limit"]["status"] == "checked"
 
 
@@ -153,7 +153,7 @@ def test_set_stale_sends_an_approved_entry_back_to_proposed_keeping_who_decided(
     entry = derived.set_stale(tmp_path, "decisions", "carryover_limit", "the cited document has a newer edition")
     assert entry["status"] == "proposed" and entry["check"]["passed"] is False
     assert entry["check"]["failures"] == ["the cited document has a newer edition"]
-    assert entry["check"]["by"] == "clm-derive check"
+    assert entry["check"]["by"] == "decision-derive check"
     assert (entry["decided_by"], entry["decided_at"]) == ("kevin", decided_at)
     assert entry["note"].startswith("matches § 5") and "newer edition" in entry["note"]
     assert derived.read(tmp_path)["decisions"]["carryover_limit"]["status"] == "proposed"
@@ -187,7 +187,7 @@ def test_a_table_changed_since_its_check_cannot_be_approved(tmp_path):
     derived.set_check(tmp_path, "decisions", "carryover_limit", {"passed": True, "failures": []})
     (tmp_path / "derived" / "rules" / "carryover_limit.dmn").write_text("<edited/>", encoding="utf-8")
     with pytest.raises(derived.DerivedError, match="^carryover_limit's DMN has changed since its check: run "
-                                                   "clm-derive check again$"):
+                                                   "decision-derive check again$"):
         derived.set_status(tmp_path, "decisions", "carryover_limit", "approved", by="kevin")
     assert derived.changed_since_check(tmp_path, derived.read(tmp_path)["decisions"]["carryover_limit"])
 
@@ -202,7 +202,7 @@ def _read_again(folder, agreed=True, at="2026-11-04T10:00:00+00:00", **entry) ->
     layer = _layer()
     layer["decisions"]["carryover_limit"] = {
         "status": "checked", "decided_by": None, "decided_at": None, "note": None, **entry,
-        "check": {"passed": agreed, "failures": [], "at": at, "by": "clm-derive check",
+        "check": {"passed": agreed, "failures": [], "at": at, "by": "decision-derive check",
                   "second_reading": {"model": "second", "agreed": agreed, "differences": []}}}
     derived.write(folder, layer)
 
@@ -219,7 +219,7 @@ def test_with_a_second_reader_an_entry_is_approved_after_an_agreeing_reading(tmp
 def test_with_a_second_reader_an_entry_never_read_again_is_not_approved(tmp_path):
     derived.write(tmp_path, _layer())
     with pytest.raises(derived.DerivedError, match="^carryover_limit has no second reading by second that agrees, "
-                                                   "made since its last change: run clm-derive check"):
+                                                   "made since its last change: run decision-derive check"):
         approve(tmp_path)
     assert approve(tmp_path, reader=None)["status"] == "approved"
 
@@ -247,7 +247,8 @@ def test_set_check_refuses_conflicts(tmp_path):
 def test_a_person_cannot_set_checked_only_clm_derive_check_does(tmp_path, kind, name):
     derived.write(tmp_path, _layer())
     derived.set_status(tmp_path, kind, name, "rejected", by="kevin")
-    with pytest.raises(derived.DerivedError, match="checked is set only by the mechanical check.*run clm-derive check"):
+    with pytest.raises(derived.DerivedError,
+                       match="checked is set only by the mechanical check.*run decision-derive check"):
         derived.set_status(tmp_path, kind, name, "checked", by="kevin")
     assert derived.read(tmp_path)[kind][name]["status"] == "rejected"
     assert derived.set_status(tmp_path, kind, name, "proposed", by="kevin")["status"] == "proposed"

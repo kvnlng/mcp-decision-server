@@ -12,9 +12,9 @@ import pytest
 from fake_documents import FakeEmbedder, FakeStore
 from test_derived_load import HEAD
 
-from clm_decision import derive, derive_check, derived
-from clm_decision.dmn import DmnError, load_table
-from clm_decision.environment import Slot, load_environment
+from mcp_decision_server import derive, derive_check, derived
+from mcp_decision_server.dmn import DmnError, load_table
+from mcp_decision_server.environment import Slot, load_environment
 
 HANDBOOK = Path(__file__).parent.parent / "examples" / "handbook" / "handbook.jsonl"
 ON = date(2026, 12, 1)
@@ -313,7 +313,7 @@ def test_recheck_accepts_a_null_check_after_a_correction(env):
     assert derived.read(folder)["decisions"]["carryover_limit"]["check"] is None
     derive_check.recheck(folder, env, on=ON)
     entry = derived.read(folder)["decisions"]["carryover_limit"]
-    assert entry["status"] == "checked" and entry["check"]["passed"] and entry["check"]["by"] == "clm-derive check"
+    assert entry["status"] == "checked" and entry["check"]["passed"] and entry["check"]["by"] == "decision-derive check"
 
 
 def reading(agreed, model="m"):
@@ -513,7 +513,7 @@ def test_a_long_disagreement_lists_three_points_and_counts_the_rest():
 
 
 def rendered(tmp_path, name, inputs, outputs, rows):
-    """A table rendered as clm-derive renders one: rows of ({input: test}, {output: value})."""
+    """A table rendered as decision-derive renders one: rows of ({input: test}, {output: value})."""
     slot = Slot(name, "decisions", "A test rule.", "handbook", inputs, outputs)
     file = tmp_path / f"{name}.dmn"
     file.write_text(derive.render_dmn(slot, [{"inputs": tests, "outputs": values, "reason": "r"}

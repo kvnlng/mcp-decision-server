@@ -16,8 +16,8 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 
 # pylint: disable=wrong-import-position
-from clm_decision import decision  # noqa: E402
-from clm_decision.scenario import ScenarioError, load_scenario  # noqa: E402
+from mcp_decision_server import decision  # noqa: E402
+from mcp_decision_server.scenario import ScenarioError, load_scenario  # noqa: E402
 
 # Each call says what it is for, in the words an agent's tool description would use
 PROPOSALS = {"hold_seats": "hold seats for the party on a new flight, to rebook them",
@@ -72,7 +72,7 @@ def main(argv: list[str] | None = None) -> int:
     except (ScenarioError, OSError, ValueError) as error:
         print(f"error: {error}", file=sys.stderr)
         return 2
-    from clm_decision.clm_router import ClmError, make_router  # pylint: disable=import-outside-toplevel
+    from mcp_decision_server.clm_router import ClmError, make_router  # pylint: disable=import-outside-toplevel
     try:
         router, note = make_router(scenario)
     except ClmError as error:

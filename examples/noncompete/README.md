@@ -36,23 +36,23 @@ to read again.
 ## Running it
 
 PostgreSQL 18 with pgvector (Homebrew, no Docker) and Ollama with `embeddinggemma` and `gemma4:26b`.
-`.postgres-local.env` (git-ignored) holds `CLM_DOCUMENTS_PASSWORD`, named in `environment.toml`
+`.postgres-local.env` (git-ignored) holds `DECISION_DOCUMENTS_PASSWORD`, named in `environment.toml`
 ([docs/environment.md](../../docs/environment.md)).
 
 ```bash
 uv sync --extra documents --extra agent
 set -a; . ./.postgres-local.env; set +a
-uv run clm-load-documents examples/noncompete/environment.toml statutes examples/noncompete/statutes.jsonl \
+uv run decision-load-documents examples/noncompete/environment.toml statutes examples/noncompete/statutes.jsonl \
     --source "State legislatures, collected 2026-11-03"
 uv run python examples/noncompete/fetch_cases.py fetch    # reads about 11 GB, a volume at a time; keeps about 0.7 GB
 uv run python examples/noncompete/fetch_cases.py build    # reads each opinion's facts locally: about an hour
-uv run clm-load-documents examples/noncompete/environment.toml cases examples/noncompete/data/cases.jsonl \
+uv run decision-load-documents examples/noncompete/environment.toml cases examples/noncompete/data/cases.jsonl \
     --source "Caselaw Access Project, fetched 2026-11-03"
 
 npx -y @modelcontextprotocol/inspector@2.13.0 --cli \
-    sh -c 'set -a; . ./.postgres-local.env; exec uv run clm-server examples/noncompete/environment.toml' \
+    sh -c 'set -a; . ./.postgres-local.env; exec uv run decision-server examples/noncompete/environment.toml' \
     --method tools/call --tool-name scenario_agreement_by_state --tool-arg agreement=standard_v3
-uv run clm-agent examples/noncompete/environment.toml \
+uv run decision-agent examples/noncompete/environment.toml \
     "In Texas, is a 2-year, nationwide non-compete for a sales manager reasonable?"
 ```
 

@@ -12,10 +12,10 @@ import noncompete_functions
 from fake_documents import FakeEmbedder, FakeStore
 from mcp import Client
 
-from clm_decision import decision_record
-from clm_decision.engine import run_decision, run_query, run_scenario
-from clm_decision.environment import load_environment
-from clm_decision.environment_server import build_environment_server
+from mcp_decision_server import decision_record
+from mcp_decision_server.engine import run_decision, run_query, run_scenario
+from mcp_decision_server.environment import load_environment
+from mcp_decision_server.environment_server import build_environment_server
 
 EXAMPLE = Path(__file__).parent.parent / "examples" / "noncompete"
 CASES = Path(__file__).parent / "data" / "noncompete" / "cases.jsonl"

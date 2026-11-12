@@ -12,14 +12,14 @@ from fake_documents import FakeEmbedder
 from mcp import Client
 from test_holder import ClosableStore
 
-from clm_decision import clm_router
-from clm_decision import server
-from clm_decision import tracing
-from clm_decision.environment import Environment, load_environment
-from clm_decision.environment_server import build_environment_server, describe, reload
-from clm_decision.holder import Holder
-from clm_decision.scenario import ScenarioError
-from clm_decision.serving import Serve
+from mcp_decision_server import clm_router
+from mcp_decision_server import server
+from mcp_decision_server import tracing
+from mcp_decision_server.environment import Environment, load_environment
+from mcp_decision_server.environment_server import build_environment_server, describe, reload
+from mcp_decision_server.holder import Holder
+from mcp_decision_server.scenario import ScenarioError
+from mcp_decision_server.serving import Serve
 
 EXAMPLE = Path(__file__).parent.parent / "examples" / "tariff" / "environment.toml"
 QUERIES = ["product_facts", "components_of", "suppliers_of", "key_clients_of", "supply_dependencies",
@@ -225,7 +225,7 @@ async def test_no_tool_changes_a_status(tmp_path, monkeypatch):
         raise AssertionError("a tool wrote the derived layer")
     env = load(path, admit=["checked", "approved"])
     for name in ("write", "set_status", "set_check", "set_stale"):
-        monkeypatch.setattr(f"clm_decision.derived.{name}", refuse)
+        monkeypatch.setattr(f"mcp_decision_server.derived.{name}", refuse)
     async with Client(build_environment_server(env)) as client:
         tools = (await client.list_tools()).tools
         results = {tool.name: await client.call_tool(tool.name, {name: GIVEN[name]

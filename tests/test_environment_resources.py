@@ -11,10 +11,10 @@ import pytest
 from fake_documents import FakeEmbedder, FakeStore
 from mcp import Client, MCPError
 
-from clm_decision import derived, instructions, tracing
-from clm_decision.admin import Admin
-from clm_decision.environment import load_environment
-from clm_decision.environment_server import build_environment_server, reload
+from mcp_decision_server import derived, instructions, tracing
+from mcp_decision_server.admin import Admin
+from mcp_decision_server.environment import load_environment
+from mcp_decision_server.environment_server import build_environment_server, reload
 
 HANDBOOK = Path(__file__).parent.parent / "examples" / "handbook"
 TARIFF = Path(__file__).parent.parent / "examples" / "tariff" / "environment.toml"

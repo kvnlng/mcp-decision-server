@@ -7,8 +7,8 @@ from dataclasses import replace
 from conftest import ENV_TOML
 from fake_documents import FakeEmbedder, FakeStore
 
-from clm_decision.environment import load_environment
-from clm_decision.holder import Holder
+from mcp_decision_server.environment import load_environment
+from mcp_decision_server.holder import Holder
 
 
 class ClosableStore(FakeStore):

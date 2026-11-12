@@ -46,14 +46,14 @@ CLM reads that sentence, not that it weighs journeys.
 
 ```bash
 uv run python examples/crowdstrike/write_examples.py      # 1,500 examples and 600 check cases
-uv run clm-train examples/crowdstrike/scenario.toml
-uv run clm-evaluate examples/crowdstrike/scenario.toml --cases examples/crowdstrike/check.cases.jsonl
+uv run decision-train examples/crowdstrike/scenario.toml
+uv run decision-evaluate examples/crowdstrike/scenario.toml --cases examples/crowdstrike/check.cases.jsonl
 ```
 
 `write_examples.py` writes 250 examples per route from seed 1's day and 100 check cases per route from
 seed 0's (the demo's), with the facts and options the scenario's own tools give. A fifth of the message
 pool, chosen by a hash of the text, is kept for the check cases only, so the check is on wording CLM
-never saw. `clm-evaluate --cases` runs them through the server's own steps without actions, reports
+never saw. `decision-evaluate --cases` runs them through the server's own steps without actions, reports
 every result per class and suggests a confidence threshold.
 
 Released, the heads sent every one of the 600 check cases down the Overnight route (100 of 600, 17%);

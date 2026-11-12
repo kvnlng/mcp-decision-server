@@ -23,7 +23,7 @@ reasons and the measured figures, in the same order as the overview.
 | `instructions` | The question CLM is asked |
 | `criteria` | `score`: at least two levels, lowest first. `choice`: a table of at least two options with descriptions. Not used by `noul` |
 
-`clm-train` trains only questions your examples label ([fine-tuning.md](fine-tuning.md)); check the others by eye
+`decision-train` trains only questions your examples label ([fine-tuning.md](fine-tuning.md)); check the others by eye
 before relying on them.
 
 ## Rules
@@ -42,7 +42,7 @@ before relying on them.
 | `[tools.inform.<tool>] questions` | all questions | Which questions hear the tool's facts: facts can sway unrelated questions |
 
 Give each tool a mock backend as well as the live one, switched by a setting such as `backend = "mock"`, to train and
-check before connecting real systems; `clm-new-scenario` writes tools that way
+check before connecting real systems; `decision-new-scenario` writes tools that way
 ([walkthrough.md](walkthrough.md#4-act-on-it-acting-tools)). Make clients and connections once, in `configure()`: an
 HTTP client made on every call can cost more than CLM's part of the decision. Tools are called from several threads
 at once, so anything they share must allow that, as an `httpx.Client` does.
@@ -112,8 +112,8 @@ never uncertain.
 | `[record] path` | `<scenario>.corrections.jsonl` | Where the record is written, relative to the scenario |
 | `[record] key_env` or `key_file` | none | The record's encryption key, in a variable or a file beside the scenario: [data-handling.md](data-handling.md) |
 
-`clm-evaluate` replays the corrections, answers and options and suggests a confidence threshold; `clm-train` learns
-from them ([fine-tuning.md](fine-tuning.md)).
+`decision-evaluate` replays the corrections, answers and options and suggests a confidence threshold; `decision-train`
+learns from them ([fine-tuning.md](fine-tuning.md)).
 
 ## Other settings
 
@@ -123,8 +123,8 @@ from them ([fine-tuning.md](fine-tuning.md)).
 | `[clm] model_id` | the 8-bit MLX build, or the authors' release with torch | Which CLM to download |
 | `[clm] device` | the first of `cuda`, `mps`, `cpu` | Torch only: where CLM runs |
 | `[clm] heads` | none | Folder of trained heads, relative to the scenario |
-| `[generator] backend` | `"mlx"` | `"mlx"`, `"ollama"` or `"openai"`: the language model for `clm-synthesize`, not the server. On Linux, use `ollama` or `openai` |
+| `[generator] backend` | `"mlx"` | `"mlx"`, `"ollama"` or `"openai"`: the language model for `decision-synthesize`, not the server. On Linux, use `ollama` or `openai` |
 | `[generator] model` | MLX Qwen3-4B | Its model |
 | `[generator] max_tokens` | `400` | Its reply length |
 | `[generator] base_url`, `api_key_env` | none | With `openai`: the server's http(s) address, and the variable holding its key (never a key in the URL) |
-| `[synthesize] messages` | `"messages that a person might send to an assistant"` | What `clm-synthesize` asks for: say who is writing and to what |
+| `[synthesize] messages` | `"messages that a person might send to an assistant"` | What `decision-synthesize` asks for: say who is writing and to what |

@@ -4,9 +4,9 @@
 import pytest
 from conftest import ENV_FUNCTIONS, ENV_TOML
 
-from clm_decision import engine
-from clm_decision.environment import load_environment
-from clm_decision.scenario import StepError
+from mcp_decision_server import engine
+from mcp_decision_server.environment import load_environment
+from mcp_decision_server.scenario import StepError
 
 ESTIMATE_TOML = ENV_TOML + '''
 [queries.demand]

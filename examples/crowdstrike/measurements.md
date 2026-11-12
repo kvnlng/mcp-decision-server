@@ -101,7 +101,7 @@ Agent 812 of 1,454, No_Action 1,262 of 1,532.
 
 The trace puts 100% of each `decide_many` call in CLM's encoding; the tools take about 3 ms a call. Too
 many go to a person: the threshold of 0.6 keeps wrong-and-not-marked to 5% but marks 43% uncertain,
-most of them right. Lowering it is not the answer, since `clm-evaluate --cases` suggests 0.63 as the
+most of them right. Lowering it is not the answer, since `decision-evaluate --cases` suggests 0.63 as the
 lowest threshold at which kept routes are 90% right; better-trained heads are. The 28 lost holds are
 real races, failed visibly.
 

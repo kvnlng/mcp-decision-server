@@ -14,9 +14,9 @@ from pathlib import Path
 import pytest
 from fake_documents import FakeEmbedder, FakeStore
 
-from clm_decision import derive, derive_check, derived
-from clm_decision.engine import run_scenario
-from clm_decision.environment import load_environment
+from mcp_decision_server import derive, derive_check, derived
+from mcp_decision_server.engine import run_scenario
+from mcp_decision_server.environment import load_environment
 
 EXAMPLE = Path(__file__).parent.parent / "examples" / "handbook"
 KEY = tomllib.loads((EXAMPLE / "answer_key.toml").read_text(encoding="utf-8"))
@@ -155,7 +155,7 @@ def test_the_second_key_finds_a_checked_table_that_is_wrong(folder, tmp_path):
 
 
 def test_the_second_keys_grid_holds_no_negative_count(folder):
-    from clm_decision.dmn import load_table  # pylint: disable=import-outside-toplevel
+    from mcp_decision_server.dmn import load_table  # pylint: disable=import-outside-toplevel
     table = load_table(folder / "rules" / "carryover_limit.dmn")
     grid = derive_check.grid(table, table)
     assert {row["years_of_service"] for row in grid} == {0, 4, 5, 6}

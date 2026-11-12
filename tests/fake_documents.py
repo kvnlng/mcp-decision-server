@@ -1,13 +1,13 @@
 """A document store and an embedder without PostgreSQL or Ollama, for the tests.
 
 FakeStore keeps documents in memory and ranks passages by the words they share with the text; FakeEmbedder gives a
-fixed-length vector of letter counts. Both follow the protocols in clm_decision.documents.
+fixed-length vector of letter counts. Both follow the protocols in mcp_decision_server.documents.
 """
 # Fakes mirror real interfaces, so some arguments go unused.
 # pylint: disable=missing-function-docstring,unused-argument
 from __future__ import annotations
 
-from clm_decision.scenario import StepError
+from mcp_decision_server.scenario import StepError
 
 
 def _matches(value, wanted) -> bool:
@@ -19,7 +19,7 @@ def _matches(value, wanted) -> bool:
 
 
 class FakeStore:
-    """Documents by collection; `built` as clm-load-documents records it."""
+    """Documents by collection; `built` as decision-load-documents records it."""
 
     def __init__(self):
         self.collections: dict[str, list[dict]] = {}

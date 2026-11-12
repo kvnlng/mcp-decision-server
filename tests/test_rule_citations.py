@@ -6,10 +6,10 @@ import pytest
 from conftest import ENV_TOML
 from fake_documents import FakeEmbedder, FakeStore
 
-from clm_decision.engine import run_decision
-from clm_decision.environment import load_environment
-from clm_decision.environment_server import explain_rule
-from clm_decision.scenario import ScenarioError
+from mcp_decision_server.engine import run_decision
+from mcp_decision_server.environment import load_environment
+from mcp_decision_server.environment_server import explain_rule
+from mcp_decision_server.scenario import ScenarioError
 
 DOCUMENTS = '''
 [documents]

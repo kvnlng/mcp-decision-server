@@ -1,7 +1,8 @@
 """Tests for documents_pg.py and the Ollama embedder: collections in PostgreSQL with pgvector.
 
 Those marked postgres need a local PostgreSQL with pgvector, a role `clm` and a database `clm_documents_test` that
-can be wiped, with the password in CLM_TEST_POSTGRES_PASSWORD: `uv run pytest -m postgres tests/test_documents_pg.py`.
+can be wiped, with the password in DECISION_TEST_POSTGRES_PASSWORD:
+`uv run pytest -m postgres tests/test_documents_pg.py`.
 """
 # Test names say what they check, and pytest fixtures are used by repeating their names.
 # Fakes mirror psycopg's interface, so some arguments go unused.
@@ -18,11 +19,11 @@ import psycopg
 import pytest
 from fake_documents import FakeEmbedder
 
-from clm_decision import documents, documents_pg
-from clm_decision.documents import DocumentSettings, OllamaEmbedder
-from clm_decision.scenario import ScenarioError, StepError
+from mcp_decision_server import documents, documents_pg
+from mcp_decision_server.documents import DocumentSettings, OllamaEmbedder
+from mcp_decision_server.scenario import ScenarioError, StepError
 
-TEST_DB = DocumentSettings("127.0.0.1", 5432, "clm_documents_test", "clm", "CLM_TEST_POSTGRES_PASSWORD",
+TEST_DB = DocumentSettings("127.0.0.1", 5432, "clm_documents_test", "clm", "DECISION_TEST_POSTGRES_PASSWORD",
                            "http://127.0.0.1:11434")
 NEVER = DocumentSettings("127.0.0.1", 1, "nowhere", "clm", "X", "http://127.0.0.1:11434")
 
@@ -58,7 +59,7 @@ def vectors(documents=None):
 @pytest.fixture
 def store():
     if not os.environ.get(TEST_DB.password_env):
-        pytest.skip("CLM_TEST_POSTGRES_PASSWORD is not set")
+        pytest.skip("DECISION_TEST_POSTGRES_PASSWORD is not set")
     store = documents_pg.connect_postgres(TEST_DB, os.environ[TEST_DB.password_env])
     store.replace("cases", DOCUMENTS, vectors(), built())
     yield store
@@ -104,7 +105,7 @@ def test_the_embedder_keeps_one_client_with_a_timeout_for_searches(monkeypatch):
 
 
 def test_two_first_searches_at_once_make_one_client(monkeypatch):
-    """clm-server --http runs searches on worker threads; a second client would never be used or closed."""
+    """decision-server --http runs searches on worker threads; a second client would never be used or closed."""
     made, real = [], httpx.Client
     both = threading.Barrier(2)
 

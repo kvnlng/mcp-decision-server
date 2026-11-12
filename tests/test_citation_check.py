@@ -7,9 +7,9 @@ from conftest import ENV_TOML
 from fake_documents import FakeEmbedder, FakeStore
 from test_rule_citations import DOCUMENTS, cited_dmn, with_collection
 
-from clm_decision import citation_check, decision_record
-from clm_decision.engine import Steps
-from clm_decision.environment import load_environment
+from mcp_decision_server import citation_check, decision_record
+from mcp_decision_server.engine import Steps
+from mcp_decision_server.environment import load_environment
 
 SEARCHED = [{"rows": [
     {"document": "tx-15.51", "citation": "Tex. Bus. & Com. Code § 15.51", "title": "Procedures", "metadata": {},

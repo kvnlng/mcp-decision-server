@@ -1,19 +1,19 @@
 # Serving decisions to agents
 
-`clm-server` offers a scenario's decisions as MCP tools ([README](../README.md#tools)). It loads CLM once at start-up
-and answers calls until stopped; loading messages go to stderr. The flags, the identity-provider steps, the exact
-rules of tool selection and the trace format and measurements are in [serving-reference.md](serving-reference.md).
+`decision-server` offers a scenario's decisions as MCP tools ([README](../README.md#tools)). It loads CLM once at
+start-up and answers calls until stopped; loading messages go to stderr. The flags, the identity-provider steps, the
+exact rules of tool selection and the trace format and measurements are in [serving-reference.md](serving-reference.md).
 
 ## On this computer, over stdio
 
 ```bash
-uv run clm-server my_scenario.toml [--review]
+uv run decision-server my_scenario.toml [--review]
 ```
 
 The client starts the server and talks over stdin and stdout. For Claude Code:
 
 ```bash
-claude mcp add decisions -- uv run --directory /path/to/this/repo clm-server my_scenario.toml
+claude mcp add decisions -- uv run --directory /path/to/this/repo decision-server my_scenario.toml
 ```
 
 Loading CLM takes a few seconds; if a client gives up, raise its start-up timeout (Claude Code:
@@ -23,7 +23,7 @@ Loading CLM takes a few seconds; if a client gives up, raise its start-up timeou
 
 ```bash
 export DECISION_SERVER_KEY=<a long random key>
-uv run clm-server my_scenario.toml --http [--host 127.0.0.1] [--port 8000] [--review]
+uv run decision-server my_scenario.toml --http [--host 127.0.0.1] [--port 8000] [--review]
 ```
 
 The address is `http://<host>:<port>/mcp`, MCP's Streamable HTTP, without sessions. **Every request must send
@@ -56,7 +56,7 @@ signature, issuer, audience, expiry and scopes. Each caller is known by name, an
 identity provider; the server never issues tokens.
 
 ```bash
-uv run clm-server my_scenario.toml --http --auth oauth \
+uv run decision-server my_scenario.toml --http --auth oauth \
     --issuer https://login.example.org/realms/clm --audience decision-server --scope decide \
     --resource-url https://decisions.example.org/mcp
 ```
@@ -74,7 +74,7 @@ PostgreSQL ([examples/handbook](../examples/handbook/README.md)):
 
 ```bash
 export DECISION_SERVER_KEY=<a long random key>
-uv run clm-server examples/handbook/environment.toml --http --port 8000
+uv run decision-server examples/handbook/environment.toml --http --port 8000
 # in another shell
 npx -y @modelcontextprotocol/inspector@2.13.0 --cli http://127.0.0.1:8000/mcp --transport http \
     --header "Authorization: Bearer <the key>" --method resources/list
@@ -93,11 +93,11 @@ By default a server offers every tool it has. An operator can offer fewer, for a
 
 ```bash
 # only the scenarios and reading the handbook (describe is always offered: agents start with it)
-uv run clm-server examples/handbook/environment.toml --tools "describe,scenario_*,search_*,document_*"
+uv run decision-server examples/handbook/environment.toml --tools "describe,scenario_*,search_*,document_*"
 # everything but the queries and one decision
-uv run clm-server examples/tariff/environment.toml --exclude-tools "query_*,decision_news_risk"
+uv run decision-server examples/tariff/environment.toml --exclude-tools "query_*,decision_news_risk"
 # routing that decides and informs but opens no ticket
-uv run clm-server examples/service_desk/scenario.toml --read-only
+uv run decision-server examples/service_desk/scenario.toml --read-only
 ```
 
 - This limits what agents are offered; it is not an access boundary. The key or OAuth is the boundary: a caller you
@@ -122,8 +122,8 @@ private network link, allowed by your workspace's outbound network rules.
 ## Where the time goes
 
 ```bash
-uv run clm-server my_scenario.toml --http --trace calls.jsonl
-uv run clm-trace-report calls.jsonl [--since 2h] [--until 15m]
+uv run decision-server my_scenario.toml --http --trace calls.jsonl
+uv run decision-trace-report calls.jsonl [--since 2h] [--until 15m]
 ```
 
 What a trace line and the report hold: [reference](serving-reference.md#where-the-time-goes). Decisions a second on a
@@ -140,8 +140,8 @@ machine, and what each needs, is in [models.md](models.md); what has been checke
 
 ```bash
 sudo apt install build-essential python3.12-dev   # PyTorch's Triton compiles a helper on first use
-pip install "clm-decision-agent[clm] @ git+https://github.com/kvnlng/clm-decision-agent"
-clm-server <scenario> --http --host 0.0.0.0       # with DECISION_SERVER_KEY set
+pip install "mcp-decision-server[clm] @ git+https://github.com/kvnlng/mcp-decision-server"
+decision-server <scenario> --http --host 0.0.0.0       # with DECISION_SERVER_KEY set
 ```
 
 In a checkout, `uv sync` and `CLM_TEST_BACKEND=torch uv run pytest -m slow -k real_server -s` run CLM on the GPU

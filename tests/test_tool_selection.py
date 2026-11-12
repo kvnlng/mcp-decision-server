@@ -9,10 +9,10 @@ import pytest
 from mcp import Client, MCPError
 from test_environment_resources import HANDBOOK, copied, load, read
 
-from clm_decision import instructions, server
-from clm_decision.environment_server import build_environment_server
-from clm_decision.scenario import ScenarioError
-from clm_decision.serving import Serve
+from mcp_decision_server import instructions, server
+from mcp_decision_server.environment_server import build_environment_server
+from mcp_decision_server.scenario import ScenarioError
+from mcp_decision_server.serving import Serve
 
 HANDBOOK_TOOLS = ("search_handbook", "document_handbook", "cites_handbook", "cited_by_handbook")
 FEWER = Serve(tools=("describe", "scenario_*", "search_*", "document_*"))

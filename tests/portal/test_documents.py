@@ -29,7 +29,7 @@ def test_load_runs_clm_load_documents_with_the_contract_arguments(client, enviro
     assert post(client, "/documents/load", token, {"collection": "handbook", "file": "handbook.jsonl"}).status_code \
         == 200
     assert finished(client)["returncode"] == 0
-    assert runner.seen == [["/stand-in/bin/clm-load-documents", str(environment), "handbook",
+    assert runner.seen == [["/stand-in/bin/decision-load-documents", str(environment), "handbook",
                             str(environment.parent / "handbook.jsonl")]]
     assert server.reloads == [False]
     assert post(client, "/documents/load", token, {"collection": "handbook", "file": "../x.jsonl"}).status_code == 400
@@ -82,11 +82,11 @@ def test_an_upload_that_cannot_be_saved_leaves_the_file_it_would_replace_as_it_w
     assert existing.read_text() == "old\n" and not partials(environment.parent) and not runner.seen
 
 
-@pytest.mark.parametrize("installed", [{"clm-server", "clm-derive"}])
+@pytest.mark.parametrize("installed", [{"decision-server", "decision-derive"}])
 def test_an_upload_is_not_saved_when_clm_load_documents_is_not_installed(client, environment, runner):
     token = sign_in(client)
     response = upload(client, token, "handbook.jsonl", b'{"id": "hb-1"}\n')
-    assert response.status_code == 409 and "clm-load-documents is not installed" in response.text
+    assert response.status_code == 409 and "decision-load-documents is not installed" in response.text
     assert not (environment.parent / "handbook.jsonl").exists() and not runner.seen
     assert not partials(environment.parent)
 
@@ -123,18 +123,18 @@ def test_derive_runs_clm_derive_run(client, environment, runner):
     finished(client)
     post(client, "/documents/derive", token, {"collection": "handbook"})
     finished(client)
-    assert runner.seen == [["/stand-in/bin/clm-derive", "run", str(environment), "handbook", "--backend", "claude",
+    assert runner.seen == [["/stand-in/bin/decision-derive", "run", str(environment), "handbook", "--backend", "claude",
                             "--model", "claude-opus-5-5"],
-                           ["/stand-in/bin/clm-derive", "run", str(environment), "handbook"]]
+                           ["/stand-in/bin/decision-derive", "run", str(environment), "handbook"]]
     assert post(client, "/documents/derive", token, {"collection": "handbook", "backend": "gpt"}).status_code == 400
 
 
-@pytest.mark.parametrize("installed", [{"clm-server", "clm-load-documents"}])
+@pytest.mark.parametrize("installed", [{"decision-server", "decision-load-documents"}])
 def test_without_clm_derive_the_page_says_derivation_is_not_available(client, runner):
     token = sign_in(client)
     assert "Derivation is not available yet" in client.get("/documents").text
     page = post(client, "/documents/derive", token, {"collection": "handbook"}).text
-    assert '<p class="failed">clm-derive is not installed' in page and not runner.seen
+    assert '<p class="failed">decision-derive is not installed' in page and not runner.seen
 
 
 def test_a_running_job_sends_the_page_back_to_a_get_when_it_ends(client, runner):

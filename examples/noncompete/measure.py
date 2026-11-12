@@ -3,7 +3,7 @@
     uv run python examples/noncompete/measure.py run [--backends claude,ollama] [--questions q1,q2,q3]
     uv run python examples/noncompete/measure.py score
 
-run asks clm-agent each question with environment.toml and with environment_without_documents.toml, on each
+run asks decision-agent each question with environment.toml and with environment_without_documents.toml, on each
 backend, and writes each answer to runs/measure/, which git ignores. score reads them against answer_key.toml:
 
 - verdicts right: Claude (claude-opus-5-5) reads which verdict, from a list for each question, the answer gives for
@@ -21,8 +21,8 @@ import sys
 import tomllib
 from pathlib import Path
 
-from clm_decision import decision_agent
-from clm_decision.citation_check import keys
+from mcp_decision_server import decision_agent
+from mcp_decision_server.citation_check import keys
 
 HERE = Path(__file__).resolve().parent
 RUNS = HERE / "runs" / "measure"

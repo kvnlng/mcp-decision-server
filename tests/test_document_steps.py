@@ -7,11 +7,11 @@ from conftest import ENV_TOML
 from fake_documents import FakeEmbedder, FakeStore
 from mcp import Client
 
-from clm_decision import citation_check, engine
-from clm_decision.engine import StepError, Steps
-from clm_decision.environment import load_environment
-from clm_decision.environment_server import build_environment_server, describe
-from clm_decision.serving import Serve
+from mcp_decision_server import citation_check, engine
+from mcp_decision_server.engine import StepError, Steps
+from mcp_decision_server.environment import load_environment
+from mcp_decision_server.environment_server import build_environment_server, describe
+from mcp_decision_server.serving import Serve
 
 DOCUMENTS = '''
 [documents]
@@ -57,7 +57,7 @@ def test_a_search_is_a_traced_step(env):
 
 def test_an_empty_collection_names_the_loader(env):
     env.store.replace("cases", [], [], BUILT)
-    with pytest.raises(StepError, match=r"^collection cases holds nothing: load it with clm-load-documents "
+    with pytest.raises(StepError, match=r"^collection cases holds nothing: load it with decision-load-documents "
                                         r"environment\.toml cases FILE\.jsonl$"):
         Steps(env).search("cases", "covenant")
 

@@ -11,9 +11,9 @@ import pytest
 from starlette.testclient import TestClient
 from test_derived_load import entry, make
 
-from clm_decision.documents import DocumentSettings
-from clm_decision.portal import managed, web
-from clm_decision.server import KeySet
+from mcp_decision_server.documents import DocumentSettings
+from mcp_decision_server.portal import managed, web
+from mcp_decision_server.server import KeySet
 from .conftest import KEY, ORIGIN, post, sign_in
 from .test_live import agents_tools, build
 
@@ -39,10 +39,11 @@ def live_server(environment_file):
 @pytest.fixture
 def client(environment_file, live_server, monkeypatch):
     monkeypatch.setattr(web, "WRONG_KEY_WAIT", 0.01)
-    monkeypatch.setenv("CLM_DOCUMENTS_PASSWORD", PASSWORD)
+    monkeypatch.setenv("DECISION_DOCUMENTS_PASSWORD", PASSWORD)
     monkeypatch.delenv("LLM_API_KEY", raising=False)
     env = live_server.server.holder.current
-    settings = DocumentSettings("localhost", 5432, "clm", "clm", "CLM_DOCUMENTS_PASSWORD", "http://localhost:11434")
+    settings = DocumentSettings("localhost", 5432, "clm", "clm", "DECISION_DOCUMENTS_PASSWORD",
+                                "http://localhost:11434")
     object.__setattr__(env, "document_settings", settings)      # the tiny environment has no PostgreSQL
     keys = KeySet.from_sources(AGENT_KEY, None)
     keys.match(AGENT_KEY.encode())
@@ -96,7 +97,7 @@ def test_no_secret_on_page(client):
     for secret in (KEY, AGENT_KEY, PASSWORD):
         assert secret not in text and hashlib.sha256(secret.encode()).hexdigest() not in text
     assert ident(AGENT_KEY) in text
-    assert "PostgreSQL password (CLM_DOCUMENTS_PASSWORD)</td><td>set<" in text
+    assert "PostgreSQL password (DECISION_DOCUMENTS_PASSWORD)</td><td>set<" in text
     assert "<td>Portal key</td><td>set<" in text
 
 
@@ -109,14 +110,14 @@ def test_a_second_key_is_never_used(client):
 
 
 def test_missing_password_and_oauth_settings(client, monkeypatch):
-    from clm_decision import oauth  # pylint: disable=import-outside-toplevel
-    monkeypatch.delenv("CLM_DOCUMENTS_PASSWORD")
+    from mcp_decision_server import oauth  # pylint: disable=import-outside-toplevel
+    monkeypatch.delenv("DECISION_DOCUMENTS_PASSWORD")
     portal = client.app.app.state.portal
     portal.keys, portal.oauth = None, oauth.oauth("https://issuer.example/realm", "api://audience",
                                                     ["decide", "read"], "http://127.0.0.1:8000/mcp")
     sign_in(client)
     text = client.get("/server").text
-    assert "CLM_DOCUMENTS_PASSWORD)</td><td>missing<" in text and "OAuth" in text
+    assert "DECISION_DOCUMENTS_PASSWORD)</td><td>missing<" in text and "OAuth" in text
     for shown in ("https://issuer.example/realm", "api://audience", "decide read"):
         assert shown in text
 

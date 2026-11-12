@@ -14,17 +14,17 @@ The company, sites and neighbourhoods are in `graph/nodes.csv`; the five rules a
 | Facts and estimates told apart | Finances, rents and site costs are facts. Household income is an estimate (the American Community Survey's median with its 90% margin of error), given as low, central and high with its source and date |
 | Risk reported, not judged | Only the owner's rules reject. A site that fails a rule only at the low estimate is kept with a warning; the **headroom** says how far income can fall before a rule fails |
 | Approvals | An investment above 400,000 dollars needs the board; the approval is listed, not treated as a rejection |
-| A decision record | `clm-agent` writes it beside the answer: question, what was supplied, every rule with its reason, every fact and estimate with values, range and source, each branch's verdicts, warnings, headroom and approvals, and the agent's explanation, marked as not checked |
+| A decision record | `decision-agent` writes it beside the answer: question, what was supplied, every rule with its reason, every fact and estimate with values, range and source, each branch's verdicts, warnings, headroom and approvals, and the agent's explanation, marked as not checked |
 
 ## Try it
 
 ```bash
-npx -y @modelcontextprotocol/inspector@2.13.0 --cli uv run clm-server examples/new_site/environment.toml \
+npx -y @modelcontextprotocol/inspector@2.13.0 --cli uv run decision-server examples/new_site/environment.toml \
     --method tools/call --tool-name rules --tool-arg topic=open_site
-npx -y @modelcontextprotocol/inspector@2.13.0 --cli uv run clm-server examples/new_site/environment.toml \
+npx -y @modelcontextprotocol/inspector@2.13.0 --cli uv run decision-server examples/new_site/environment.toml \
     --method tools/call --tool-name scenario_new_site --tool-arg neighbourhood=tract_4102
-uv run clm-agent examples/new_site/environment.toml "Are we in a position to open a new site in an expensive area?"
-uv run clm-agent examples/new_site/environment.toml \
+uv run decision-agent examples/new_site/environment.toml "Are we in a position to open a new site in an expensive area?"
+uv run decision-agent examples/new_site/environment.toml \
     "Are we in a position to open a new site in an expensive area? We are looking at tract_4102."
 ```
 

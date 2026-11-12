@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from clm_decision import registry
+from mcp_decision_server import registry
 
 TARIFF = Path(__file__).parent.parent / "examples" / "tariff" / "environment.toml"
 URL = "https://decisions.example.org/mcp"
@@ -40,8 +40,8 @@ def test_the_description_defaults_to_the_environments_name():
 
 
 def test_the_repository_is_named_when_given():
-    assert entry(repository="https://github.com/kvnlng/clm-decision-agent")["repository"] == \
-        {"url": "https://github.com/kvnlng/clm-decision-agent", "source": "github"}
+    assert entry(repository="https://github.com/kvnlng/mcp-decision-server")["repository"] == \
+        {"url": "https://github.com/kvnlng/mcp-decision-server", "source": "github"}
 
 
 def test_a_clm_scenario_needs_a_description(write_scenario):
@@ -103,7 +103,7 @@ def test_a_path_prefix_before_mcp_is_accepted():
         "https://gateway.corp/tools/decisions/mcp"
 
 
-@pytest.mark.parametrize("repository, source", [("https://github.com/kvnlng/clm-decision-agent", "github"),
+@pytest.mark.parametrize("repository, source", [("https://github.com/kvnlng/mcp-decision-server", "github"),
                                                 ("https://gitlab.com/team/project", "gitlab")])
 def test_github_and_gitlab_repositories_are_named(repository, source):
     assert entry(repository=repository)["repository"] == {"url": repository, "source": source}

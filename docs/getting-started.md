@@ -22,12 +22,12 @@ The [reference](#reference) at the end explains what you ran.
 ## 1. Install
 
 ```bash
-git clone https://github.com/kvnlng/clm-decision-agent
-cd clm-decision-agent
+git clone https://github.com/kvnlng/mcp-decision-server
+cd mcp-decision-server
 uv sync
 ```
 
-**Check:** `uv run clm-server --help` prints the flags. A checkout gets every extra, so every command works. CLM
+**Check:** `uv run decision-server --help` prints the flags. A checkout gets every extra, so every command works. CLM
 itself downloads only when something first needs it, which nothing before section 8 does.
 
 ## 2. Look inside the server
@@ -42,7 +42,7 @@ and calls one tool at a time, with no model and no agent. Use it after every cha
 are for 2.13.0; the page changes between versions.
 
 ```bash
-npx -y @modelcontextprotocol/inspector@2.13.0 uv run clm-server examples/tariff/environment.toml
+npx -y @modelcontextprotocol/inspector@2.13.0 uv run decision-server examples/tariff/environment.toml
 ```
 
 1. **Open the page.** The command opens `http://127.0.0.1:6274/?MCP_INSPECTOR_API_TOKEN=...`. The token lets only
@@ -84,9 +84,9 @@ Stop the Inspector (Ctrl-C). Make two keys, one for agents and one for you, then
 
 ```bash
 export DECISION_SERVER_KEY=$(openssl rand -hex 32)    # agents send this
-export CLM_PORTAL_KEY=$(openssl rand -hex 32)         # you sign in to the portal with this
-echo "$CLM_PORTAL_KEY"
-uv run clm-server examples/tariff/environment.toml --http --portal 8400
+export DECISION_PORTAL_KEY=$(openssl rand -hex 32)         # you sign in to the portal with this
+echo "$DECISION_PORTAL_KEY"
+uv run decision-server examples/tariff/environment.toml --http --portal 8400
 ```
 
 1. **Agents** connect to <http://127.0.0.1:8000/mcp> with `Authorization: Bearer $DECISION_SERVER_KEY`.
@@ -132,13 +132,13 @@ When you are done, stop the server in the first terminal (Ctrl-C).
 
 ## 5. Make your own
 
-Run `clm-new-environment`. It creates a folder,
+Run `decision-new-environment`. It creates a folder,
 `my_environment`, pre-loaded with a small working example: a made-up team choosing which of three venues to hold an
 offsite at, within a budget. The second command opens it in the Inspector:
 
 ```bash
-uv run clm-new-environment my_environment
-npx -y @modelcontextprotocol/inspector@2.13.0 uv run clm-server my_environment/environment.toml
+uv run decision-new-environment my_environment
+npx -y @modelcontextprotocol/inspector@2.13.0 uv run decision-server my_environment/environment.toml
 ```
 
 A blank environment would offer only `describe`, and you would have to write several parts that fit together
@@ -188,7 +188,7 @@ deployment has four parts:
 | The person | You | Types questions in a chat |
 | The harness | `ollmcp`, a command-line chat app | Connects to two servers: the model, and your decision server. Passes your question and the tool descriptions to the model, runs the tool calls the model asks for, and returns the results until the model answers |
 | The model | `qwen3:14b`, served by Ollama | Reads the tool descriptions and decides which tools to call |
-| Your decision server | `clm-server` | Waits for harnesses to connect, runs the tools they call, and returns the results |
+| Your decision server | `decision-server` | Waits for harnesses to connect, runs the tools they call, and returns the results |
 
 You never talk to the decision server directly, and neither does Ollama: the harness connects the two. Ask, Claude
 Desktop and Claude Code are harnesses too. Here you use a separate one, `ollmcp`
@@ -202,7 +202,7 @@ server.
 
    ```bash
    echo "$DECISION_SERVER_KEY"
-   uv run clm-server my_environment/environment.toml --http
+   uv run decision-server my_environment/environment.toml --http
    ```
 
    You should see `Serving MCP at http://127.0.0.1:8000/mcp`. The server now waits for harnesses; leave it running.
@@ -273,7 +273,7 @@ the sections that follow.
 Now change your environment the way you would for real: add a rule, then add an option for it to choose. You edit
 the files under `my_environment` in the second terminal, then check each change in the Inspector, in the first, as in
 section 5. At the end you ask your agent. The commands use `vi`; any editor works. Line numbers are for the files as
-`clm-new-environment` wrote them.
+`decision-new-environment` wrote them.
 
 ### Add a rule
 
@@ -323,7 +323,7 @@ The team's travel must not cost more than 1,500 pounds.
 3. **Check it in the Inspector.** In the first terminal, start the Inspector on your environment:
 
    ```bash
-   npx -y @modelcontextprotocol/inspector@2.13.0 uv run clm-server my_environment/environment.toml
+   npx -y @modelcontextprotocol/inspector@2.13.0 uv run decision-server my_environment/environment.toml
    ```
 
    1. Connect with the **Disconnected** slider.
@@ -400,7 +400,7 @@ The team's travel must not cost more than 1,500 pounds.
 9. **Serve the new version.** Stop the Inspector (Ctrl-C) and start the server as in section 6:
 
    ```bash
-   uv run clm-server my_environment/environment.toml --http
+   uv run decision-server my_environment/environment.toml --http
    ```
 
 10. **Ask again**, in the second terminal: start `ollmcp` as in section 6, step 5, and ask with
@@ -421,7 +421,7 @@ the routes you describe. Here you make one for messages the team sends about the
 1. **Make the scenario.** In the second terminal:
 
    ```bash
-   uv run clm-new-scenario offsite_desk
+   uv run decision-new-scenario offsite_desk
    ```
 
    It writes a folder, `offsite_desk`, with a template for a shop's help desk:
@@ -439,11 +439,11 @@ the routes you describe. Here you make one for messages the team sends about the
    ```
 
    Keep lines 1 to 14: the `[clm]` block says which CLM to use. On Linux, put `#` before lines 8 and 9 and remove
-   it from lines 11 and 12. Delete everything from line 15, `# Only clm-synthesize uses a language model...`, to the
-   end (in `vi`, type `:15,$d` and Enter), then add the following and save:
+   it from lines 11 and 12. Delete everything from line 15, `# Only decision-synthesize uses a language model...`, to
+   the end (in `vi`, type `:15,$d` and Enter), then add the following and save:
 
    ```toml
-   # Only clm-synthesize uses a language model, to write example messages for training
+   # Only decision-synthesize uses a language model, to write example messages for training
    [generator]
    backend = "ollama"
    model = "qwen3:14b"
@@ -503,7 +503,7 @@ the routes you describe. Here you make one for messages the team sends about the
 4. **Measure CLM as released.** The first run downloads CLM, about 8 GB:
 
    ```bash
-   uv run clm-evaluate offsite_desk/scenario.toml --cases offsite_desk/scenario.cases.jsonl
+   uv run decision-evaluate offsite_desk/scenario.toml --cases offsite_desk/scenario.cases.jsonl
    ```
 
    You should see:
@@ -519,7 +519,7 @@ the routes you describe. Here you make one for messages the team sends about the
 5. **Write training messages.** With Ollama running, as in section 6:
 
    ```bash
-   uv run clm-synthesize offsite_desk/scenario.toml
+   uv run decision-synthesize offsite_desk/scenario.toml
    ```
 
    It takes about two minutes and writes 64 messages for each route to `offsite_desk/scenario.examples.jsonl`. Read a
@@ -528,7 +528,7 @@ the routes you describe. Here you make one for messages the team sends about the
 6. **Train CLM:**
 
    ```bash
-   uv run clm-train offsite_desk/scenario.toml
+   uv run decision-train offsite_desk/scenario.toml
    ```
 
    It takes under a minute. It holds back some of the messages, scores CLM on them before and after training, and
@@ -542,7 +542,7 @@ the routes you describe. Here you make one for messages the team sends about the
 8. **Try it in the Inspector.** In the first terminal:
 
    ```bash
-   npx -y @modelcontextprotocol/inspector@2.13.0 uv run clm-server offsite_desk/scenario.toml
+   npx -y @modelcontextprotocol/inspector@2.13.0 uv run decision-server offsite_desk/scenario.toml
    ```
 
    1. Connect with the **Disconnected** slider.
@@ -568,7 +568,7 @@ which only the first terminal has.
 
    ```bash
    echo "$DECISION_SERVER_KEY"
-   uv run clm-server my_environment/environment.toml --http
+   uv run decision-server my_environment/environment.toml --http
    ```
 
    You should see `Serving MCP at http://127.0.0.1:8000/mcp`.
@@ -576,7 +576,7 @@ which only the first terminal has.
 
    ```bash
    export DECISION_SERVER_KEY=<the key you copied>
-   uv run clm-server offsite_desk/scenario.toml --http --port 8001
+   uv run decision-server offsite_desk/scenario.toml --http --port 8001
    ```
 
    Loading CLM takes a little while. Wait for `CLM is using its trained heads from scenario.heads` and
@@ -586,7 +586,7 @@ which only the first terminal has.
    folder, and `ollmcp` saves servers for the folder it runs in, so the `cd` matters:
 
    ```bash
-   cd clm-decision-agent        # or wherever you cloned it
+   cd mcp-decision-server        # or wherever you cloned it
    export DECISION_SERVER_KEY=<the key you copied>
    ```
 
@@ -653,7 +653,7 @@ offsite server, as a harness would. It is the guide's only Python, and it is sup
 
    from mcp import Client
 
-   from clm_decision.connection import connect
+   from mcp_decision_server.connection import connect
 
    SETTINGS: dict = {}
 
@@ -762,10 +762,10 @@ A fuller scenario than section 8's: its tools look up which team handles a reque
 stand-in issue tracker. Train it first, as in section 8:
 
 ```bash
-uv run clm-train examples/service_desk/scenario.toml
+uv run decision-train examples/service_desk/scenario.toml
 uv run python examples/service_desk/mock_tracker.py              # terminal 1: a stand-in issue tracker
 npx -y @modelcontextprotocol/inspector@2.13.0 \
-    uv run clm-server examples/service_desk/scenario.toml --review    # terminal 2: the MCP Inspector
+    uv run decision-server examples/service_desk/scenario.toml --review    # terminal 2: the MCP Inspector
 ```
 
 Call `decide` with `text` "I need access to the oncology registry for an audit, needed this week". You should see
@@ -786,7 +786,7 @@ never reaches the command or the page. You should see 22 tools, 1 resource (`des
 
 ```bash
 npx -y @modelcontextprotocol/inspector@2.13.0 sh -c \
-    'set -a; . ./.postgres-local.env; exec uv run clm-server examples/handbook/environment.toml'
+    'set -a; . ./.postgres-local.env; exec uv run decision-server examples/handbook/environment.toml'
 ```
 
 ### Call a tool from a script
@@ -796,24 +796,24 @@ npx -y @modelcontextprotocol/inspector@2.13.0 sh -c \
 [serving](serving.md#inspecting-a-server).
 
 ```bash
-npx -y @modelcontextprotocol/inspector@2.13.0 --cli uv run clm-server examples/tariff/environment.toml \
+npx -y @modelcontextprotocol/inspector@2.13.0 --cli uv run decision-server examples/tariff/environment.toml \
     --method tools/call --tool-name scenario_sourcing --tool-arg product=PX
 ```
 
 ### Connect real agents
 
 ```bash
-uv run clm-server my_scenario/scenario.toml --http                   # a shared key, DECISION_SERVER_KEY
-uv run clm-server examples/tariff/environment.toml --http --auth oauth \
+uv run decision-server my_scenario/scenario.toml --http                   # a shared key, DECISION_SERVER_KEY
+uv run decision-server examples/tariff/environment.toml --http --auth oauth \
     --issuer https://login.example.org/realms/corp --audience decisions   # tokens from your identity provider
 ```
 
 | | |
 |---|---|
 | HTTP, shared key or OAuth from any OIDC issuer | [serving](serving.md) |
-| An MCP registry, so agents find a deployment | `clm-registry`, [registry](registry.md) |
-| Tracing | `--trace FILE` records each call's time and caller; `clm-trace-report` summarises it |
-| `clm-agent` | Takes a server's URL as well as a file; the key in `DECISION_SERVER_KEY` goes only over https or to this computer |
+| An MCP registry, so agents find a deployment | `decision-registry`, [registry](registry.md) |
+| Tracing | `--trace FILE` records each call's time and caller; `decision-trace-report` summarises it |
+| `decision-agent` | Takes a server's URL as well as a file; the key in `DECISION_SERVER_KEY` goes only over https or to this computer |
 | Databricks | Not tried yet; [what it needs](serving.md#databricks) |
 
 **A scenario's server acts without asking:** an acting tool runs at once unless the route is uncertain, and calling
@@ -844,7 +844,7 @@ Decisions over an environment come in two styles:
 | Examples | [service desk](../examples/service_desk/README.md), [CrowdStrike day](../examples/crowdstrike/README.md) | [tariff](../examples/tariff/README.md), [new site](../examples/new_site/README.md), [non-competes](../examples/noncompete/README.md), [handbook](../examples/handbook/README.md) |
 | Guide | [scenario](scenario.md), [walkthrough](walkthrough.md) | [environment](environment.md) |
 
-`clm-server` serves one file at a time, so the two styles cannot yet share tools. A CLM does not generate text: it
+`decision-server` serves one file at a time, so the two styles cannot yet share tools. A CLM does not generate text: it
 says which listed option fits a situation, with a probability (Kwok et al. 2026,
 [Contrastive-LM/CLM](https://github.com/Contrastive-LM/CLM)). This project runs the authors' model with PyTorch, or
 community MLX builds on a Mac.
@@ -862,11 +862,11 @@ In a checkout, run `uv sync`, then `uv run <command>`. Installed as a package, t
 environments without judges; `uvx` runs it uninstalled, so an MCP client or the Inspector can start a server:
 
 ```bash
-pip install "clm-decision-agent @ git+https://github.com/kvnlng/clm-decision-agent"               # the core
-pip install "clm-decision-agent[clm,neo4j,agent] @ git+https://github.com/kvnlng/clm-decision-agent"
-uv tool install "clm-decision-agent[clm] @ git+https://github.com/kvnlng/clm-decision-agent"       # commands only
-uvx --from "git+https://github.com/kvnlng/clm-decision-agent" clm-server my_environment/environment.toml
-uvx --from "clm-decision-agent[documents] @ git+https://github.com/kvnlng/clm-decision-agent" clm-server ...  # an extra
+pip install "mcp-decision-server @ git+https://github.com/kvnlng/mcp-decision-server"               # the core
+pip install "mcp-decision-server[clm,neo4j,agent] @ git+https://github.com/kvnlng/mcp-decision-server"
+uv tool install "mcp-decision-server[clm] @ git+https://github.com/kvnlng/mcp-decision-server"       # commands only
+uvx --from "git+https://github.com/kvnlng/mcp-decision-server" decision-server my_environment/environment.toml
+uvx --from "mcp-decision-server[documents] @ git+https://github.com/kvnlng/mcp-decision-server" decision-server ...  # an extra
 ```
 
 | Extra | Adds |
@@ -874,12 +874,12 @@ uvx --from "clm-decision-agent[documents] @ git+https://github.com/kvnlng/clm-de
 | `clm` | CLM: scenarios, judges, training and the example writer |
 | `neo4j` | The Neo4j driver, for a graph in Neo4j |
 | `documents` | The PostgreSQL driver and pgvector, for collections of documents |
-| `agent` | The Anthropic SDK, for `clm-agent` with Claude; Ollama needs nothing more |
+| `agent` | The Anthropic SDK, for `decision-agent` with Claude; Ollama needs nothing more |
 
-The commands are `clm-server`, `clm-agent`, `clm-new-scenario`, `clm-new-environment`, `clm-synthesize`,
-`clm-train`, `clm-evaluate`, `clm-record`, `clm-load-graph`, `clm-load-documents`, `clm-registry`,
-`clm-trace-report` and `clm-derive`. Each has `--help`, and one that needs a missing extra says which. The Python
-package is `clm_decision`.
+The commands are `decision-server`, `decision-agent`, `decision-new-scenario`, `decision-new-environment`,
+`decision-synthesize`, `decision-train`, `decision-evaluate`, `decision-record`, `decision-load-graph`,
+`decision-load-documents`, `decision-registry`, `decision-trace-report` and `decision-derive`. Each has `--help`, and
+one that needs a missing extra says which. The Python package is `mcp_decision_server`.
 
 ### Index of guides
 
@@ -894,4 +894,4 @@ package is `clm_decision`.
 | [registry](registry.md) | Listing a deployment in an MCP registry |
 | [data handling](data-handling.md) | Where text goes; read before using real text |
 | [findings](findings.md) | What the benchmark traces showed |
-| [portal](portal.md) | An admin page `clm-server` serves, and a chat with a running server |
+| [portal](portal.md) | An admin page `decision-server` serves, and a chat with a running server |

@@ -6,9 +6,9 @@ from pathlib import Path
 
 import pytest
 
-from clm_decision import engine
-from clm_decision.environment import load_environment
-from clm_decision.environment_server import rules_for
+from mcp_decision_server import engine
+from mcp_decision_server.environment import load_environment
+from mcp_decision_server.environment_server import rules_for
 
 EXAMPLE = Path(__file__).parent.parent / "examples" / "new_site" / "environment.toml"
 

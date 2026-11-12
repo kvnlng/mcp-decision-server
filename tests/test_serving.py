@@ -4,9 +4,9 @@ line."""
 # pylint: disable=missing-function-docstring
 import pytest
 
-from clm_decision import serving
-from clm_decision.scenario import ScenarioError
-from clm_decision.serving import Serve
+from mcp_decision_server import serving
+from mcp_decision_server.scenario import ScenarioError
+from mcp_decision_server.serving import Serve
 
 NAMES = ["describe", "query_employee", "query_plan", "scenario_match", "scenario_tuition", "search_handbook",
          "document_handbook", "rules", "rule"]

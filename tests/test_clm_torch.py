@@ -12,11 +12,11 @@ import torch
 from huggingface_hub import snapshot_download
 from safetensors.numpy import save_file
 
-from clm_decision import clm_schema
-from clm_decision import clm_torch
-from clm_decision import tracing
-from clm_decision.clm_router import HEADS_FILE, ClmError
-from clm_decision.clm_torch import TorchEncoder, TorchEngine, TorchHeads, pick_device
+from mcp_decision_server import clm_schema
+from mcp_decision_server import clm_torch
+from mcp_decision_server import tracing
+from mcp_decision_server.clm_router import HEADS_FILE, ClmError
+from mcp_decision_server.clm_torch import TorchEncoder, TorchEngine, TorchHeads, pick_device
 
 HIDDEN, WIDTH, PROJ = 8, 6, 4
 CONFIG = {"cfg": {"model": "test/encoder", "hidden_size": HIDDEN, "projection_dim": PROJ, "width": WIDTH,

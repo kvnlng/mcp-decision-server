@@ -1,4 +1,4 @@
-"""Tests for clm-derive: derivation with a canned extractor in place of a model, the layer it writes, and the
+"""Tests for decision-derive: derivation with a canned extractor in place of a model, the layer it writes, and the
 commands. No model, PostgreSQL or Ollama is needed."""
 # Test names say what they check, and pytest fixtures are used by repeating their names.
 # pylint: disable=missing-function-docstring,redefined-outer-name,unused-argument
@@ -13,9 +13,9 @@ import test_derive_check
 from fake_documents import FakeEmbedder
 from test_derive_check import LEAVE_2, ON, store
 
-from clm_decision import derive, derived
-from clm_decision.dmn import load_table
-from clm_decision.environment import load_environment
+from mcp_decision_server import derive, derived
+from mcp_decision_server.dmn import load_table
+from mcp_decision_server.environment import load_environment
 
 # The check tests' environment with its first two slots only: the carryover table and the match cap
 TOML = test_derive_check.TOML.split("\n[derived.facts.k401_2026.first_tier_rate]", maxsplit=1)[0]
@@ -71,7 +71,7 @@ def test_run_fills_every_slot_and_checks_it(path):
     assert layer["model"] == "canned" and layer["derived_at"] and layer["collection"] == "handbook"
     entry = layer["decisions"]["carryover_limit"]
     assert entry["status"] == "checked" and entry["check"]["passed"] and entry["attempts"] == 1
-    assert entry["check"]["by"] == "clm-derive run"
+    assert entry["check"]["by"] == "decision-derive run"
     assert entry["source"]["edition"] == "2026-01-01" and entry["rule"]["cites"] == ["hb-leave"]
     assert entry["description"].startswith("How many unused days")
     assert (path.parent / "derived" / entry["dmn"]).is_file()
@@ -268,7 +268,7 @@ def test_check_command_moves_a_corrected_entry_to_checked(path):
     derived.write(path.parent, layer)
     assert derive.main(["check", str(path), "--as-of", "2026-12-01"]) == 0
     entry = derived.read(path.parent)["facts"]["k401_2026.match_cap"]
-    assert entry["status"] == "checked" and entry["check"]["by"] == "clm-derive check"
+    assert entry["status"] == "checked" and entry["check"]["by"] == "decision-derive check"
 
 
 class FakeHttp:  # pylint: disable=too-few-public-methods

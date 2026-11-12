@@ -6,8 +6,9 @@ next. The docs hold the detail: read the page named in each section when you nee
 
 ## Where you work
 
-- **Build only in the person's own folders.** Each is made at the root of the clone by `uv run clm-new-environment
-  FOLDER` or `uv run clm-new-scenario FOLDER`, and holds everything of theirs: the TOML file, data, rules and Python.
+- **Build only in the person's own folders.** Each is made at the root of the clone by `uv run decision-new-environment
+  FOLDER` or `uv run decision-new-scenario FOLDER`, and holds everything of theirs: the TOML file, data, rules and
+  Python.
 - **Leave the framework alone.** `src/`, `tests/`, `examples/`, `docs/`, `pyproject.toml` and `uv.lock` are the
   framework. Read them for reference; never edit them to make the person's server work.
 - **Before you change anything in the framework, ask the person whether they develop it**: whether they own or
@@ -82,8 +83,8 @@ A mistake in the file stops loading with one line naming the setting. List the t
 browser. Here the folder is `meeting_rooms` and its scenario `meeting_room`, with the parameters `people` and `hours`:
 
 ```bash
-npx -y @modelcontextprotocol/inspector@2.13.0 --cli uv run clm-server meeting_rooms/environment.toml --method tools/list
-npx -y @modelcontextprotocol/inspector@2.13.0 --cli uv run clm-server meeting_rooms/environment.toml \
+npx -y @modelcontextprotocol/inspector@2.13.0 --cli uv run decision-server meeting_rooms/environment.toml --method tools/list
+npx -y @modelcontextprotocol/inspector@2.13.0 --cli uv run decision-server meeting_rooms/environment.toml \
     --method tools/call --tool-name scenario_meeting_room --tool-arg people=6 --tool-arg hours=2
 ```
 
@@ -99,7 +100,7 @@ Show the person what changed. They can open the same server in the browser with 
 
 ## Building a scenario
 
-`uv run clm-new-scenario FOLDER` writes `scenario.toml`, a tools module and a cases file, for a made-up shop. For a
+`uv run decision-new-scenario FOLDER` writes `scenario.toml`, a tools module and a cases file, for a made-up shop. For a
 scenario that only routes, keep the `[clm]` block and replace everything after it with your own `[generator]`,
 `[synthesize]`, `[routing]` and routes, as in
 [getting started, section 8, step 2](docs/getting-started.md#8-route-messages-with-clm); the tools module is then
@@ -133,15 +134,15 @@ The loop:
 2. **Write test cases** with the person in `scenario.cases.jsonl`, one per line: `{"text": "...", "route": "NAME"}`,
    at least two per route, in the words real senders use. `context` and `answers` are needed only when the scenario
    has tools or questions.
-3. **Measure the start:** `uv run clm-evaluate FOLDER/scenario.toml --cases FOLDER/scenario.cases.jsonl`. It prints
+3. **Measure the start:** `uv run decision-evaluate FOLDER/scenario.toml --cases FOLDER/scenario.cases.jsonl`. It prints
    the score per route, how many wrong routes were marked uncertain, each case that got the wrong route (its line,
    the route it got and its text), and a suggested `confidence_threshold`.
-4. **Write training examples:** `uv run clm-synthesize FOLDER/scenario.toml`, 64 per route. Read some from each
+4. **Write training examples:** `uv run decision-synthesize FOLDER/scenario.toml`, 64 per route. Read some from each
    route. If the generator filed messages under the wrong route, reword the descriptions, move
    `scenario.examples.jsonl` aside (it refuses to overwrite it) and synthesize again.
-5. **Train:** `uv run clm-train FOLDER/scenario.toml` writes `scenario.heads`, and prints the released and trained
+5. **Train:** `uv run decision-train FOLDER/scenario.toml` writes `scenario.heads`, and prints the released and trained
    scores on examples it held back from training.
-6. **Measure again** with the same `clm-evaluate` command, and report both scores plainly.
+6. **Measure again** with the same `decision-evaluate` command, and report both scores plainly.
 
 To see a whole decision for one message, call `decide` through the Inspector:
 `--method tools/call --tool-name decide --tool-arg text="..."` on `FOLDER/scenario.toml`. If a route still scores

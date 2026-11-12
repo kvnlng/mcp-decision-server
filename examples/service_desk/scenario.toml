@@ -15,7 +15,7 @@ model_id = "mlx-community/CLM-v0.1-8B-MLX-8bit"
 heads = "scenario.heads"            # trained heads, made by train.py; the released ones are used until then
 # Heads fit the backend that trained them: after switching, run train.py again
 
-# Only clm-synthesize uses a language model, to write example messages for training
+# Only decision-synthesize uses a language model, to write example messages for training
 [generator]
 backend = "mlx"                                        # "mlx", "ollama" or "openai"
 model = "mlx-community/Qwen3-4B-Instruct-2507-4bit"    # with ollama, for example "gemma4:26b"

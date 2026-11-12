@@ -6,8 +6,8 @@
 Each language model reads the policy's route descriptions, the passenger's message, the situation's facts
 and the journeys every rebooking route could book, fetched beforehand; it answers with a route and, where
 it applies, a journey. It calls no tools. CLM decides the same cases through the server's own steps, without
-actions. Scores are per route, as clm-evaluate --cases gives them, plus an accuracy weighted by each route's share of
-the day, over the routes the cases hold; --limit takes its cases from each route in turn. Time and cost are scaled
+actions. Scores are per route, as decision-evaluate --cases gives them, plus an accuracy weighted by each route's
+share of the day, over the routes the cases hold; --limit takes its cases from each route in turn. Time and cost are scaled
 to the day's 99,806 decisions. Results go to runs/, which git ignores.
 """
 import argparse
@@ -25,7 +25,7 @@ HERE = Path(__file__).resolve().parent
 import crowdstrike_tools  # noqa: E402
 from policy import ROUTES  # noqa: E402
 
-from clm_decision.evaluate import score_cases  # noqa: E402
+from mcp_decision_server.evaluate import score_cases  # noqa: E402
 
 DAY = 99806
 # Each route's share of the day's right answers (seed 0, no seats held: Stage 3's count)
@@ -119,7 +119,7 @@ class LocalModel:
     """A local model on this machine, through MLX. Its tokens cost nothing; its time is what it costs."""
 
     def __init__(self, model_id: str):
-        from clm_decision.generator import MLXGenerator  # pylint: disable=import-outside-toplevel
+        from mcp_decision_server.generator import MLXGenerator  # pylint: disable=import-outside-toplevel
         self.generator = MLXGenerator(model_id, 200)
 
     def decide(self, system: str, user: str) -> tuple[str, dict]:
@@ -183,9 +183,9 @@ def _ask(model, cases: list[dict], workers: int) -> tuple[list[dict], list[dict]
 
 
 def _clm(scenario, cases: list[dict]) -> tuple[list[dict], float]:
-    from clm_decision import decision  # pylint: disable=import-outside-toplevel
-    from clm_decision.clm_router import make_router  # pylint: disable=import-outside-toplevel
-    from clm_decision.tools import load_tools  # pylint: disable=import-outside-toplevel
+    from mcp_decision_server import decision  # pylint: disable=import-outside-toplevel
+    from mcp_decision_server.clm_router import make_router  # pylint: disable=import-outside-toplevel
+    from mcp_decision_server.tools import load_tools  # pylint: disable=import-outside-toplevel
     scenario = replace(scenario, actions=())
     tools = load_tools(scenario)
     router, _ = make_router(scenario)
@@ -214,7 +214,7 @@ def main(argv: list[str] | None = None) -> int:  # pylint: disable=too-many-loca
     parser.add_argument("--name", default=time.strftime("compare-%Y%m%d-%H%M%S"))
     parser.add_argument("--runs", type=Path, default=HERE / "runs", help="where the results are written")
     args = parser.parse_args(argv)
-    from clm_decision.scenario import load_scenario  # pylint: disable=import-outside-toplevel
+    from mcp_decision_server.scenario import load_scenario  # pylint: disable=import-outside-toplevel
     scenario = load_scenario(args.scenario)
     crowdstrike_tools.configure(dict(scenario.tool_settings), HERE)
     cases = [json.loads(line) for line in args.cases.read_text(encoding="utf-8").splitlines() if line]

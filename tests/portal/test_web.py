@@ -10,7 +10,7 @@ import pytest
 from mcp.server import MCPServer
 from starlette.testclient import TestClient
 
-from clm_decision.portal import web
+from mcp_decision_server.portal import web
 from .conftest import KEY, ORIGIN, csrf_of, post, sign_in
 
 PAGES = ["/", "/ask", "/review", "/documents", "/jobs/current", "/passage?collection=handbook&id=hb-401k"]
@@ -148,7 +148,7 @@ def test_configuration_shows_every_rule_and_graph_row_and_points_to_the_inspecto
         assert text in page, text
     assert "/passage?collection=handbook&amp;id=hb-401k" in page
     assert ("npx -y @modelcontextprotocol/inspector@2.13.0 --cli http://127.0.0.1:8000/mcp --transport http"
-            in page) and "uv run clm-server" not in page and "Bearer &lt;an agents' key&gt;" in page
+            in page) and "uv run decision-server" not in page and "Bearer &lt;an agents' key&gt;" in page
     assert "Resource templates" not in page and "document_handbook" not in page
     assert "/passage?collection=handbook&amp;id=hb-leave&amp;passage=%282%29" in page
 
@@ -245,7 +245,7 @@ def test_a_failed_reload_shows_its_error_and_the_files(client, server):
 @pytest.mark.parametrize("path", PAGES + ["/sign-in"])
 def test_the_keys_never_appear_on_a_page(portal, path, monkeypatch):
     monkeypatch.setattr(web, "WRONG_KEY_WAIT", 0.01)
-    monkeypatch.setenv("CLM_PORTAL_KEY", KEY)
+    monkeypatch.setenv("DECISION_PORTAL_KEY", KEY)
     monkeypatch.setenv("DECISION_SERVER_KEY", "the-agents-key-not-a-secret")
     monkeypatch.setenv("LLM_API_KEY", "the-model-key-not-a-secret")
     keys = (KEY, "the-agents-key-not-a-secret", "the-model-key-not-a-secret")

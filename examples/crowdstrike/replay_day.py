@@ -114,7 +114,7 @@ def _client(args, trace: Path):
     if args.url:
         import httpx2  # pylint: disable=import-outside-toplevel
         from mcp.client.streamable_http import streamable_http_client  # pylint: disable=import-outside-toplevel
-        from clm_decision.connection import withheld  # pylint: disable=import-outside-toplevel
+        from mcp_decision_server.connection import withheld  # pylint: disable=import-outside-toplevel
         why = withheld(args.url, args.key_env)   # never in the clear to another computer
         if why:
             print(f"warning: {why}", file=sys.stderr)
@@ -122,7 +122,7 @@ def _client(args, trace: Path):
         http = httpx2.AsyncClient(headers={"Authorization": f"Bearer {key}"} if key else None, timeout=600)
         return Client(streamable_http_client(args.url, http_client=http))
     return Client(StdioServerParameters(command=sys.executable, cwd=str(ROOT),
-                                        args=["-m", "clm_decision.server", str(Path(args.scenario).resolve()),
+                                        args=["-m", "mcp_decision_server.server", str(Path(args.scenario).resolve()),
                                               "--trace", str(trace)]), read_timeout_seconds=600)
 
 
@@ -137,7 +137,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--key-env", default="DECISION_SERVER_KEY", help="variable holding the server's key")
     parser.add_argument("--name", default=time.strftime("replay-%Y%m%d-%H%M%S"), help="name of the run's files")
     args = parser.parse_args(argv)
-    from clm_decision.scenario import ScenarioError, load_scenario  # pylint: disable=import-outside-toplevel
+    from mcp_decision_server.scenario import ScenarioError, load_scenario  # pylint: disable=import-outside-toplevel
     try:
         seed = int(load_scenario(args.scenario).tool_settings.get("seed", 0))
     except ScenarioError as error:
@@ -166,7 +166,7 @@ def main(argv: list[str] | None = None) -> int:
     if found.get("stopped"):
         print(f"Stopped early: {found['stopped']}", file=sys.stderr)
     if trace.exists():
-        from clm_decision import trace_report  # pylint: disable=import-outside-toplevel
+        from mcp_decision_server import trace_report  # pylint: disable=import-outside-toplevel
         print(trace_report.report(trace_report.summarise(trace_report.load(str(trace)))))
     return 1 if found.get("stopped") else 0
 

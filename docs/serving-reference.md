@@ -26,7 +26,7 @@ provider steps, the exact rules of tool selection, the trace format and the meas
 | `--read-only` | off | Run no acting tool ([below](#choosing-the-tools-and-a-read-only-server)) |
 | `--trace FILE` | off | One JSON line per call, saying where the time went |
 | `--trace-text` | off | Add each request's text to the trace |
-| `--portal PORT` | off | Serve the [portal](portal.md) on this port, from the same process; needs `--http`, an environment file and `CLM_PORTAL_KEY` |
+| `--portal PORT` | off | Serve the [portal](portal.md) on this port, from the same process; needs `--http`, an environment file and `DECISION_PORTAL_KEY` |
 | `--portal-host HOST`, `--portal-public-origin URL` | `127.0.0.1`, none | The portal's address, and the address a TLS-ending proxy serves it at |
 | `--ask-backend`, `--ask-model`, `--ask-model-url` | `openai`, the chat's | The portal's Ask starting model |
 | `--admit-derived STATUSES` | none | For testing only: also admit derived entries with these statuses |
@@ -84,8 +84,8 @@ The overview has the commands and what `--read-only` means
   excluded. A name or pattern that matches no tool stops start-up with one line naming it and the tools there are.
   For a scenario, `correct` and `agreement` count as its tools with or without `--review`, so a file can exclude them.
 - What is not offered is gone everywhere: from the tool list; from `describe`, which lists it under `left_out` so an
-  agent does not look for it; from the resource templates that stand for the same thing (`rule://{name}` with the `rule` tool,
-  `document://` with `document_COLLECTION`); and from the `answer_question` prompt and the server's
+  agent does not look for it; from the resource templates that stand for the same thing (`rule://{name}` with the `rule`
+  tool, `document://` with `document_COLLECTION`); and from the `answer_question` prompt and the server's
   instructions where they name a tool. A scenario of an environment still runs every query, decision and
   calculation it needs: the selection limits what the agent can call, not what runs inside a scenario.
 - The same settings can live in the scenario or environment file as a `[serve]` table
@@ -95,9 +95,9 @@ The overview has the commands and what `--read-only` means
 To check what a selection leaves:
 
 ```bash
-npx -y @modelcontextprotocol/inspector@2.13.0 --cli uv run clm-server examples/service_desk/scenario.toml \
+npx -y @modelcontextprotocol/inspector@2.13.0 --cli uv run decision-server examples/service_desk/scenario.toml \
     --tools "decide*" --exclude-tools decide_many --method tools/list           # decide and describe
-npx -y @modelcontextprotocol/inspector@2.13.0 --cli uv run clm-server examples/service_desk/scenario.toml \
+npx -y @modelcontextprotocol/inspector@2.13.0 --cli uv run decision-server examples/service_desk/scenario.toml \
     --read-only --method tools/call --tool-name decide --tool-arg "text=I need access to the readmissions data"
 ```
 

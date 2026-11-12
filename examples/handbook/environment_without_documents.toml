@@ -18,7 +18,7 @@ edges = "graph/edges.csv"
 
 [documents]
 backend = "postgres"
-password_env = "CLM_DOCUMENTS_PASSWORD"
+password_env = "DECISION_DOCUMENTS_PASSWORD"
 tools = false                             # the comparison run: no search_ or document_ tools
 cited_text = false                        # and a rule's citations without the handbook's text
 

@@ -69,18 +69,18 @@ the function does, so branch functions work on either graph. Every query needs `
 nothing else changes. The server connects at start-up: an unreachable database or wrong password stops it with one
 line naming the URI, and a failed query is one line naming the query.
 
-`clm-load-graph` copies the CSV graph into the database, **replacing what it holds**: each node becomes `(:Node:<Kind>
-{id, kind, name, ...})`, its kind capitalised as a label, and each edge becomes a relationship typed by the relation in
-capitals, with the edge's other columns. `Node.id` is made unique. Two kinds that would become one label (`site` and
-`Site`), or two relations that would become one type, stop the load, since the built-in graph keeps them apart. The
-delete and the copy are one transaction, so a failed load leaves the graph that was there; a very large graph may need a
-higher `db.memory.transaction.max`.
+`decision-load-graph` copies the CSV graph into the database, **replacing what it holds**: each node becomes
+`(:Node:<Kind> {id, kind, name, ...})`, its kind capitalised as a label, and each edge becomes a relationship typed by
+the relation in capitals, with the edge's other columns. `Node.id` is made unique. Two kinds that would become one label
+(`site` and `Site`), or two relations that would become one type, stop the load, since the built-in graph keeps them
+apart. The delete and the copy are one transaction, so a failed load leaves the graph that was there; a very large graph
+may need a higher `db.memory.transaction.max`.
 
 ```bash
 brew install neo4j                        # natively; it brings Java 21
 neo4j-admin dbms set-initial-password "$NEO4J_PASSWORD"      # before the first start
 neo4j start
-uv run clm-load-graph examples/tariff/environment.toml
+uv run decision-load-graph examples/tariff/environment.toml
 ```
 
 Keep the password in a git-ignored file such as `.neo4j-local.env` (`NEO4J_PASSWORD=...`) and load it with
@@ -96,7 +96,7 @@ host = "127.0.0.1"
 port = 5432
 database = "clm_documents"
 user = "clm"
-password_env = "CLM_DOCUMENTS_PASSWORD"   # the variable that holds the password; never the password itself
+password_env = "DECISION_DOCUMENTS_PASSWORD"   # the variable that holds the password; never the password itself
 ollama_url = "http://127.0.0.1:11434"     # embeds passages and searches, so no text leaves the machine
 tools = true                              # false: only your functions search; the agent gets no document tools
 cited_text = true                         # false: a rule's citations give the document's citation and title, not its text
@@ -115,9 +115,9 @@ filters = { state = "string", court_level = "string", year = "integer", decided 
 - **The server connects at start-up.** An unreachable database, one without the `vector` extension, or a role that
   cannot create the four tables stops it with one line. A connection lost later (PostgreSQL restarts, the machine
   sleeps) is opened again on the next call. The driver is the `documents` extra:
-  `pip install 'clm-decision-agent[documents]'`.
+  `pip install 'mcp-decision-server[documents]'`.
 
-`clm-load-documents` loads a collection from JSON lines, **replacing what it holds**:
+`decision-load-documents` loads a collection from JSON lines, **replacing what it holds**:
 
 ```json
 {"id": "tx-bcc-15.50", "citation": "Tex. Bus. & Com. Code § 15.50", "title": "Criteria for enforceability",
@@ -137,8 +137,8 @@ brew install postgresql@18 pgvector       # natively
 createdb clm_documents
 psql -d clm_documents -c "CREATE ROLE clm LOGIN PASSWORD '...'; ALTER DATABASE clm_documents OWNER TO clm"
 ollama pull embeddinggemma
-set -a; . ./.postgres-local.env; set +a   # CLM_DOCUMENTS_PASSWORD=...
-uv run clm-load-documents my_environment/environment.toml cases cases.jsonl --source "CourtListener, 2026-11"
+set -a; . ./.postgres-local.env; set +a   # DECISION_DOCUMENTS_PASSWORD=...
+uv run decision-load-documents my_environment/environment.toml cases cases.jsonl --source "CourtListener, 2026-11"
 ```
 
 **Text in documents is untrusted.** The server returns passages as they are, with no filter, so words aimed at a model
@@ -147,7 +147,7 @@ what inputs, but never how a rule decides from the inputs it is given. Derivatio
 figure passes the mechanical check, since the check only asks whether the passage states it; that is why a derived
 rule decides only once a person approves it. Load only documents you would trust their authors to write rules from.
 `uv run pytest -m postgres` checks the store against a local database `clm_documents_test`, password in
-`CLM_TEST_POSTGRES_PASSWORD`; point it only at a database you can wipe.
+`DECISION_TEST_POSTGRES_PASSWORD`; point it only at a database you can wipe.
 
 ## Decisions
 
@@ -255,9 +255,9 @@ supplied decision's. A decision slot's inputs and outputs are string, number, in
 cannot test or give a list. Fact slots need the built-in graph.
 
 ```
-uv run clm-derive run ENVIRONMENT COLLECTION [--backend claude|ollama] [--model NAME] [--as-of DATE] [--fresh]
-uv run clm-derive check ENVIRONMENT [--as-of DATE]
-uv run clm-derive status ENVIRONMENT KIND NAME STATUS --by WHO [--note TEXT]
+uv run decision-derive run ENVIRONMENT COLLECTION [--backend claude|ollama] [--model NAME] [--as-of DATE] [--fresh]
+uv run decision-derive check ENVIRONMENT [--as-of DATE]
+uv run decision-derive status ENVIRONMENT KIND NAME STATUS --by WHO [--note TEXT]
 ```
 
 `run` searches the collection with each slot's description and gives the model the documents in force on `--as-of`
@@ -296,10 +296,10 @@ An entry **passes the check** only when all of these hold:
 proposed when its cited document has a newer edition, has left the collection or is not in force; it keeps who decided,
 and the reason is added to the note once. While it stays stale for that reason, a later `check` leaves it. Each check
 records the table's sha256 (`check.dmn_sha256`): if the table is edited afterwards, `status` refuses to approve and
-loading refuses to admit, saying its DMN has changed since its check and that `clm-derive check` must run again; that
-run sends an approved one back to proposed and checks it at once. An approved table checked before digests were kept is
-sent back and checked the same way, once, at the next `check`, which prints how many (`N approved before table digests
-were kept: sent back to proposed and checked, to be approved again`); until then it is taken as it is.
+loading refuses to admit, saying its DMN has changed since its check and that `decision-derive check` must run again;
+that run sends an approved one back to proposed and checks it at once. An approved table checked before digests were
+kept is sent back and checked the same way, once, at the next `check`, which prints how many (`N approved before table
+digests were kept: sent back to proposed and checked, to be approved again`); until then it is taken as it is.
 
 Loading **admits** an entry only when its status is in `admit`, its check passed, its table is the one checked, its
 cited edition is still in force (a new edition is re-derived by `run`) and its table loads. Otherwise the slot is
@@ -358,7 +358,7 @@ false alarms instead: granite4:micro flagged 5 of gemma4's 9 right entries, and 
 flagged 3 of 11. Claude reading gemma4's layer caught both wrong tiers and flagged none, but sends the documents to
 Claude. A person still approves every entry ([examples/handbook](../examples/handbook/README.md#a-second-reading)).
 
-`clm-server --admit-derived proposed,checked,approved` admits unapproved entries too, for testing only; `describe`
+`decision-server --admit-derived proposed,checked,approved` admits unapproved entries too, for testing only; `describe`
 says so. A scenario, or an environment without a `[derived]` table, refuses the flag. A rejected entry never decides:
 neither the file nor the flag can admit one. No tool of the decision server changes a status.
 
@@ -391,10 +391,10 @@ Each resource is read by the code its tool uses, as JSON, and fails with the too
 traced like a tool call, named by its URI, failed reads too. Documents are offered only when the document tools are
 (`tools = true`). Rules and documents are resource templates only and are not listed one by one; a client reads
 one by name. A collection that holds nothing, or was loaded with another embedding model, gives the tools' reason when
-a document of it is read; the document template's description says so. The whole derived layer, with entries not in force, is not a resource: the portal
-reads it from the files. Graph facts stay `query_` tools, since a query takes parameters and runs your code. Outside
-information reaches the model only through tools: most MCP clients, and the reference agent, let a model fetch only
-that way. Resources are for clients and people that browse or attach data.
+a document of it is read; the document template's description says so. The whole derived layer, with entries not in
+force, is not a resource: the portal reads it from the files. Graph facts stay `query_` tools, since a query takes
+parameters and runs your code. Outside information reaches the model only through tools: most MCP clients, and the
+reference agent, let a model fetch only that way. Resources are for clients and people that browse or attach data.
 
 **The prompt**, `answer_question(question)`, is the reference agent's instructions with the environment's name and
 description and the question, in one user message, so any MCP client asks the way the agent does. A missing or blank
@@ -405,7 +405,7 @@ run one. The reference agent keeps every line, whatever tools it is given.
 **Context** lives in these places: the instructions the server sends when a client connects (call `describe` first, and
 take every figure from the tools); company data, the graph and the collections, reached by the tools and the resources;
 chat history, which is the client's (the server keeps none); user preferences, not kept. The CLM scenario server
-(`clm-server` on a scenario file) is unchanged: tools only, with no resources or prompts.
+(`decision-server` on a scenario file) is unchanged: tools only, with no resources or prompts.
 
 ## The reference agent and the number check
 

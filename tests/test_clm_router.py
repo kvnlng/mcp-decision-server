@@ -10,9 +10,9 @@ import numpy as np
 import pytest
 from conftest import BASE_TOML
 
-from clm_decision import clm_router
-from clm_decision.clm_router import ROUTE_QID, LocalContrastiveRouter, make_router, resolve_heads
-from clm_decision.scenario import load_scenario
+from mcp_decision_server import clm_router
+from mcp_decision_server.clm_router import ROUTE_QID, LocalContrastiveRouter, make_router, resolve_heads
+from mcp_decision_server.scenario import load_scenario
 
 
 class FakeEngine:
@@ -166,7 +166,7 @@ def test_load_verdicts_encodes_them_all_in_one_call(scenario):
 
 def test_matching_a_verdict_encodes_nothing_that_deciding_did_not(scenario):
     from test_clm_torch import CONFIG, FakeEncoder, tiny_weights  # pylint: disable=import-outside-toplevel
-    from clm_decision.clm_torch import TorchEngine, TorchHeads  # pylint: disable=import-outside-toplevel
+    from mcp_decision_server.clm_torch import TorchEngine, TorchHeads  # pylint: disable=import-outside-toplevel
     encoder = FakeEncoder()
     router = LocalContrastiveRouter(engine=TorchEngine(encoder, TorchHeads(tiny_weights(), CONFIG, "cpu")))
     router.load_verdicts([correction("User: bill me", "Billing", "Tech")], scenario)
@@ -186,7 +186,7 @@ def test_heads_are_used_only_when_they_match_the_scenario(write_scenario):
     path = write_scenario(BASE_TOML.replace('model_id = "test/clm"', 'model_id = "test/clm"\nheads = "my.heads"'))
     scenario = load_scenario(path)
     folder, note = resolve_heads(scenario)
-    assert folder is None and "clm-train" in note
+    assert folder is None and "decision-train" in note
 
     scenario.clm_heads.mkdir()
     (scenario.clm_heads / "training.json").write_text(json.dumps({"routing_sha": "something else"}))
@@ -207,11 +207,11 @@ def test_heads_are_used_only_when_they_match_the_scenario(write_scenario):
 
     (scenario.clm_heads / "training.json").write_text("[]")
     folder, note = resolve_heads(scenario)
-    assert folder is None and "training.json in my.heads cannot be read" in note and "clm-synthesize" not in note
+    assert folder is None and "training.json in my.heads cannot be read" in note and "decision-synthesize" not in note
 
     (scenario.clm_heads / "training.json").write_text('{"routing_sha": ')
     folder, note = resolve_heads(scenario)
-    assert folder is None and "training.json in my.heads cannot be read" in note and "run clm-train again" in note
+    assert folder is None and "training.json in my.heads cannot be read" in note and "run decision-train again" in note
 
 
 def test_no_heads_setting_means_the_released_heads(scenario):
@@ -231,7 +231,7 @@ def test_heads_trained_on_the_other_backend_are_not_used(write_scenario):
     facts = {"routing_sha": scenario.routing_sha, "clm_model_id": "test/clm"}     # no backend: made with mlx
     (scenario.clm_heads / "training.json").write_text(json.dumps(facts))
     assert resolve_heads(scenario) == (None, "released heads (my.heads was trained with the mlx backend; "
-                                             "run clm-train again)")
+                                             "run decision-train again)")
     (scenario.clm_heads / "training.json").write_text(json.dumps({**facts, "clm_backend": "torch"}))
     assert resolve_heads(scenario) == (scenario.clm_heads, "trained heads from my.heads")
 
@@ -266,7 +266,7 @@ def test_rank_asks_one_choice_question_over_the_options():
 
 def test_a_single_option_is_chosen_with_full_confidence():
     from test_clm_torch import CONFIG, FakeEncoder, tiny_weights  # pylint: disable=import-outside-toplevel
-    from clm_decision.clm_torch import TorchEngine, TorchHeads  # pylint: disable=import-outside-toplevel
+    from mcp_decision_server.clm_torch import TorchEngine, TorchHeads  # pylint: disable=import-outside-toplevel
     router = LocalContrastiveRouter(engine=TorchEngine(FakeEncoder(), TorchHeads(tiny_weights(), CONFIG, "cpu")))
     assert router.rank("Late again", {"a": "Flight A"}, "Which?")["confidence"] == pytest.approx(1.0)
 
@@ -316,8 +316,8 @@ def test_mlx_state_vectors_stay_within_the_builds_cache():
 
 def test_decide_many_of_nothing_on_a_real_engine(scenario):
     from test_clm_torch import CONFIG, FakeEncoder, tiny_weights  # pylint: disable=import-outside-toplevel
-    from clm_decision.clm_torch import TorchEngine, TorchHeads  # pylint: disable=import-outside-toplevel
-    from clm_decision.decision import decide_many  # pylint: disable=import-outside-toplevel
+    from mcp_decision_server.clm_torch import TorchEngine, TorchHeads  # pylint: disable=import-outside-toplevel
+    from mcp_decision_server.decision import decide_many  # pylint: disable=import-outside-toplevel
     engine = TorchEngine(FakeEncoder(), TorchHeads(tiny_weights(), CONFIG, "cpu"))
     engine.prefetch([], {"q": {"type": "noul", "instructions": "Urgent?"}})
     assert decide_many([], scenario, LocalContrastiveRouter(engine=engine), {}) == []
@@ -342,7 +342,7 @@ def test_changing_a_trained_questions_wording_makes_heads_stale(write_scenario):
     changed = load_scenario(write_scenario(
         scenario.path.read_text(encoding="utf-8").replace("Is this urgent?", "Is it urgent?")))
     assert resolve_heads(changed) == (None, "released heads (the question 'urgent' changed since my.heads was "
-                                            "trained; run clm-train again)")
+                                            "trained; run decision-train again)")
 
 
 def test_changing_an_untrained_question_does_not(write_scenario):
@@ -365,11 +365,11 @@ def test_a_trained_ranking_goes_stale_with_its_instructions(write_scenario):
 
 def test_without_the_clm_extra_the_error_says_how_to_install_it(monkeypatch):
     import importlib  # pylint: disable=import-outside-toplevel
-    from clm_decision.clm_common import ClmError  # pylint: disable=import-outside-toplevel
+    from mcp_decision_server.clm_common import ClmError  # pylint: disable=import-outside-toplevel
     monkeypatch.setitem(sys.modules, "huggingface_hub", None)      # None makes the import fail, as when not installed
-    monkeypatch.delitem(sys.modules, "clm_decision.clm_router")
+    monkeypatch.delitem(sys.modules, "mcp_decision_server.clm_router")
     with pytest.raises(ClmError, match=r"^CLM is not installed \(huggingface_hub is missing\): install the clm extra"):
-        importlib.import_module("clm_decision.clm_router")
+        importlib.import_module("mcp_decision_server.clm_router")
 
 
 def fake_mlx_build(folder):

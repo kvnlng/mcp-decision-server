@@ -11,10 +11,10 @@ import torch
 from safetensors.numpy import load_file
 from torch import nn
 
-from clm_decision import train
-from clm_decision.clm_torch import TorchHeads
-from clm_decision.scenario import load_scenario
-from clm_decision.train import HeadsModel, accuracy, fit, probe_accuracy, save_heads
+from mcp_decision_server import train
+from mcp_decision_server.clm_torch import TorchHeads
+from mcp_decision_server.scenario import load_scenario
+from mcp_decision_server.train import HeadsModel, accuracy, fit, probe_accuracy, save_heads
 
 DIM, CLASSES = 12, 3
 
@@ -199,7 +199,7 @@ def test_main_trains_with_the_torch_backend(write_scenario, monkeypatch, tmp_pat
 
 def test_main_says_how_many_record_lines_it_could_not_read(write_scenario, monkeypatch, capsys):
     from conftest import BASE_TOML  # pylint: disable=import-outside-toplevel
-    from clm_decision.record import append_record, new_key  # pylint: disable=import-outside-toplevel
+    from mcp_decision_server.record import append_record, new_key  # pylint: disable=import-outside-toplevel
     path = write_scenario(BASE_TOML.replace('model_id = "test/clm"', 'model_id = "test/clm"\nheads = "my.heads"'))
     path.with_name("scenario.examples.jsonl").write_text(json.dumps({"text": "charged twice", "route": "Billing"}))
     append_record(load_scenario(path).record_path, {"kind": "route", "state_text": "User: a", "human": "Tech",

@@ -9,7 +9,7 @@ from pathlib import Path
 import pytest
 
 from conftest import BASE_TOML
-from clm_decision.scenario import Action, Inform, Rule, ScenarioError, load_scenario
+from mcp_decision_server.scenario import Action, Inform, Rule, ScenarioError, load_scenario
 
 
 def test_loads_values_and_defaults(write_scenario):

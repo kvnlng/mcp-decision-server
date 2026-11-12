@@ -10,17 +10,17 @@ local model, and with the rules and the handbook behind fewer tools.
     uv run python examples/handbook/measure.py second claude|ollama claude|ollama MODEL
     uv run python examples/handbook/measure.py score
 
-derive runs `clm-derive run --fresh` on environment_derived.toml with that backend, approves every entry that passed
-its check, labelled as a scripted approval and not a person's, and keeps a copy of the layer in
+derive runs `decision-derive run --fresh` on environment_derived.toml with that backend, approves every entry that
+passed its check, labelled as a scripted approval and not a person's, and keeps a copy of the layer in
 runs/measure/derived-BACKEND/; restore puts that copy back; recheck checks that copy again with the check as it is
 now, asking no model, and approves by script only what passes. compare evaluates each kept layer against the second
 key, the hand-written rules/*.dmn and graph/nodes.csv, and writes runs/measure/second_key.json: above all, the
 entries that passed the check and are wrong, which a person approving them would have had to catch. second checks a
-copy of a kept layer again with a second reading by MODEL (clm-derive check, in runs/measure/second-FIRST-by-MODEL/),
-asking no first model and leaving the kept layer as it is, and counts against the second key the wrong entries it
+copy of a kept layer again with a second reading by MODEL (decision-derive check, in
+runs/measure/second-FIRST-by-MODEL/), asking no first model and leaving the kept layer as it is, and counts against the second key the wrong entries it
 caught and the right ones it flagged, in runs/measure/second_reading.json.
 
-run asks clm-agent each question in each setup, on each backend, and writes each answer to runs/measure/, which git
+run asks decision-agent each question in each setup, on each backend, and writes each answer to runs/measure/, which git
 ignores: `none` with --no-tools, `rules` with environment_without_documents.toml, `documents` with environment.toml,
 `documents_only` with environment_documents_only.toml, and `derived` and `derived_local` with
 environment_derived.toml, which run only when the layer in derived/ is Claude's or gemma4's, and `fewer_tools` with a
@@ -50,11 +50,11 @@ import tomllib
 from datetime import date
 from pathlib import Path
 
-from clm_decision import decision_agent, derive, derive_check, derived
-from clm_decision.dmn import DmnError, load_table
-from clm_decision.environment import load_environment
-from clm_decision import number_check
-from clm_decision.number_check import numbers_in, unsupported
+from mcp_decision_server import decision_agent, derive, derive_check, derived
+from mcp_decision_server.dmn import DmnError, load_table
+from mcp_decision_server.environment import load_environment
+from mcp_decision_server import number_check
+from mcp_decision_server.number_check import numbers_in, unsupported
 
 HERE = Path(__file__).resolve().parent
 RUNS = HERE / "runs" / "measure"
@@ -408,7 +408,7 @@ def score() -> int:
         keyed = key[question]
         read = read_figures(client, result["answer"], keyed) if result["answer"] else {
             "items": {}, "other": [], "verdict": NOT_GIVEN}
-        # What the tools returned, and the question, as clm-agent counts them
+        # What the tools returned, and the question, as decision-agent counts them
         returned = [call["error"] or call["result"] for call in result["calls"]] + [result["question"]]
         rows.append({"question": question, "setup": setup, "backend": backend, "model": result["model"],
                      **score_figures(read, keyed, returned), "figures": len(keyed["figures"]),

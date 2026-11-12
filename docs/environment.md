@@ -6,8 +6,8 @@ against your rules, set out in `environment.toml`, which this guide describes. W
 organisation's data, with arithmetic, policy and alternatives to compare: "should we move Product Line X's sourcing to
 Region B, and what would it do to the Q3 margin and our delivery terms?".
 
-Start with `uv run clm-new-environment my_environment`: a working offsite-planning environment to edit into your own.
-[examples/tariff](../examples/tariff/README.md) uses everything here.
+Start with `uv run decision-new-environment my_environment`: a working offsite-planning environment to edit into your
+own. [examples/tariff](../examples/tariff/README.md) uses everything here.
 
 ## Four parts, and one rule
 
@@ -16,7 +16,7 @@ Start with `uv run clm-new-environment my_environment`: a working offsite-planni
 | Knowledge graph | What exists and how it connects | The data, and named queries over it |
 | Decision models | What the rules, formulas and limits say | DMN tables, or rule functions |
 | Scenarios | Which alternatives there are, and which is best | Levers and allowed values, objective, limits |
-| Agent | Turns a question into calls, and results into an answer | Nothing: any MCP client; `clm-agent` is a reference one |
+| Agent | Turns a question into calls, and results into an answer | Nothing: any MCP client; `decision-agent` is a reference one |
 
 **The owner writes every query, rule, calculation and lever; the agent only chooses among them.** It never writes a
 graph query, states a rule or invents a lever value, and is told never to calculate, so every figure and verdict
@@ -46,14 +46,14 @@ edges = "graph/edges.csv"
 
 Every table of the file and what it declares: [reference](environment-reference.md#the-file).
 
-`clm-server` serves a file with an `[environment]` table without loading CLM. The MCP Inspector starts it and shows
+`decision-server` serves a file with an `[environment]` table without loading CLM. The MCP Inspector starts it and shows
 its tools, resources and prompts, and calls one, with no agent
 ([getting started](getting-started.md#2-look-inside-the-server); the commands are in
 [the walkthrough](#from-a-new-folder-to-a-registered-server)).
 
 ```bash
-uv run clm-server examples/tariff/environment.toml            # MCP over stdio
-DECISION_SERVER_KEY=... uv run clm-server examples/tariff/environment.toml --http
+uv run decision-server examples/tariff/environment.toml            # MCP over stdio
+DECISION_SERVER_KEY=... uv run decision-server examples/tariff/environment.toml --http
 ```
 
 `--http`, the key and `--trace` work as in routing ([serving.md](serving.md)). Review mode is for routing only.
@@ -83,8 +83,8 @@ branch fails, naming it. What to put in the description and the rows:
 
 Named queries can run on Neo4j, with the Cypher beside each query's function
 ([reference](environment-reference.md#on-neo4j)). The driver is the `neo4j` extra
-(`pip install 'clm-decision-agent[neo4j]'`, or `uv sync` in a checkout). `clm-load-graph` copies the CSV graph into
-the database, **replacing what it holds**.
+(`pip install 'mcp-decision-server[neo4j]'`, or `uv sync` in a checkout). `decision-load-graph` copies the CSV graph
+into the database, **replacing what it holds**.
 
 ## Documents
 
@@ -221,8 +221,8 @@ plan. Warnings, headroom and approvals: [reference](environment-reference.md#ris
 
 ## The decision record
 
-`clm-agent` writes a decision record beside each answer, as JSON and as a page (`<time>.record.md`). It is built only
-from the tools' results, so it works for a server at a URL, and the same calls give the same record. What it holds:
+`decision-agent` writes a decision record beside each answer, as JSON and as a page (`<time>.record.md`). It is built
+only from the tools' results, so it works for a server at a URL, and the same calls give the same record. What it holds:
 [reference](environment-reference.md#the-decision-record).
 
 ## Derived rules and facts
@@ -234,7 +234,7 @@ mechanically, and only a person's approval lets it decide. Every decision step, 
 that disagrees with a supplied fact is reported as a conflict. A reading that gave no value, or one a person rejected,
 opens no conflict; the conflict of a fact rejected later is dropped at the next `run`.
 
-<p align="center"><img src="images/derived-states.svg" alt="The statuses of a derived rule or fact: clm-derive run proposes it; passing the mechanical check makes it checked; a person approves it; a person can reject any entry, and a rejected one never decides. A new edition, a document gone or an edited table sends it back to proposed. It decides once loading admits it. A conflict with a supplied fact is open until a person resolves it, and the supplied fact decides throughout." width="760"></p>
+<p align="center"><img src="images/derived-states.svg" alt="The statuses of a derived rule or fact: decision-derive run proposes it; passing the mechanical check makes it checked; a person approves it; a person can reject any entry, and a rejected one never decides. A new edition, a document gone or an edited table sends it back to proposed. It decides once loading admits it. A conflict with a supplied fact is open until a person resolves it, and the supplied fact decides throughout." width="760"></p>
 
 The environment declares **slots**, the decisions and facts it needs, without their contents; without a `[derived]`
 table the layer is ignored:
@@ -283,7 +283,7 @@ exclude_tools = ["cites_*", "cited_by_*"]                      # wins over tools
 read_only = true                                               # describe says so; an environment's tools only read
 ```
 
-`clm-server --tools`, `--exclude-tools` and `--read-only` replace the file's setting, never add to it. What is left
+`decision-server --tools`, `--exclude-tools` and `--read-only` replace the file's setting, never add to it. What is left
 out is gone from the tool list, `describe` (which names it under `left_out`), the matching resources and the prompt;
 the scenarios still run every part they need. The portal reads the same file, so it honours `[serve]`.
 
@@ -299,9 +299,9 @@ The resources, the prompt and where context lives: [reference](environment-refer
 The whole path, with the starter environment:
 
 ```bash
-uv run clm-new-environment offsite                  # a working environment to edit
-npx -y @modelcontextprotocol/inspector@2.13.0 uv run clm-server offsite/environment.toml   # its tools, in the browser
-npx -y @modelcontextprotocol/inspector@2.13.0 --cli uv run clm-server offsite/environment.toml \
+uv run decision-new-environment offsite                  # a working environment to edit
+npx -y @modelcontextprotocol/inspector@2.13.0 uv run decision-server offsite/environment.toml   # its tools, in the browser
+npx -y @modelcontextprotocol/inspector@2.13.0 --cli uv run decision-server offsite/environment.toml \
     --method tools/call --tool-name scenario_offsite --tool-arg team=T1 --tool-arg days=2
 ```
 
@@ -310,14 +310,14 @@ Loft kept at 7,380. Then serve it, list it in a registry and use it:
 
 ```bash
 export DECISION_SERVER_KEY=<a long random key>
-uv run clm-server offsite/environment.toml --http --trace calls.jsonl
-uv run clm-registry offsite/environment.toml --name io.github.you/offsite \
+uv run decision-server offsite/environment.toml --http --trace calls.jsonl
+uv run decision-registry offsite/environment.toml --name io.github.you/offsite \
     --url https://offsite.corp.internal/mcp --version 0.1.0 --description "Where a team should hold its offsite"
 mcp-publisher validate server.json && mcp-publisher publish server.json
 npx -y @modelcontextprotocol/inspector@2.13.0 --cli http://127.0.0.1:8000/mcp --transport http \
     --header "Authorization: Bearer <the key>" --method tools/list   # without the header: refused (401)
-uv run clm-agent http://127.0.0.1:8000/mcp "Where should the Platform team hold its two-day offsite?"
-uv run clm-trace-report calls.jsonl                 # the steps behind each call
+uv run decision-agent http://127.0.0.1:8000/mcp "Where should the Platform team hold its two-day offsite?"
+uv run decision-trace-report calls.jsonl                 # the steps behind each call
 ```
 
 The registry needs an HTTPS address with a host name others can find. List a server on your own computer under its
@@ -328,11 +328,11 @@ reads: each branch's figures, rejecting limits and every step.
 ## The reference agent and the number check
 
 ```bash
-uv run clm-agent examples/tariff/environment.toml "QUESTION"
-uv run clm-agent https://decisions.example.org/mcp "QUESTION"    # a running server, with DECISION_SERVER_KEY
+uv run decision-agent examples/tariff/environment.toml "QUESTION"
+uv run decision-agent https://decisions.example.org/mcp "QUESTION"    # a running server, with DECISION_SERVER_KEY
 ```
 
-It starts `clm-server` for the environment, or connects to one at a URL, and gives a model the server's tools and
+It starts `decision-server` for the environment, or connects to one at a URL, and gives a model the server's tools and
 nothing else. The default model is Claude through the Anthropic API: Opus 5.5 unless `--model` says otherwise, with the
 Anthropic SDK's usual credentials, none stored. The other is a local model through Ollama (`--backend ollama`):
 `gemma4:26b` unless `--model` says otherwise, at `--ollama-url` (default `http://127.0.0.1:11434`); Ollama must be
@@ -342,8 +342,8 @@ than combine queries and decisions; never calculate; name the rejected branches,
 behind them; cite the steps relied on; say plainly when no tool can answer part of the question.
 
 The question, answer, every call, the model and the time taken go as JSON to the environment's git-ignored `runs/`
-(for a URL, `runs/` in the current folder; `clm-new-environment` writes the `.gitignore`), one file per run, with `-2`
-for a second run in the same second. The number check then lists any figure in the answer that no tool returned,
+(for a URL, `runs/` in the current folder; `decision-new-environment` writes the `.gitignore`), one file per run, with
+`-2` for a second run in the same second. The number check then lists any figure in the answer that no tool returned,
 reported, not blocked; the citation check does the same for citations.
 
 `--no-tools` and what the checks match: [reference](environment-reference.md#the-number-check).

@@ -10,11 +10,11 @@ Train CLM once ([Training CLM for the scenario](#training-clm-for-the-scenario))
 project root:
 
 ```bash
-uv run clm-train examples/service_desk/scenario.toml
+uv run decision-train examples/service_desk/scenario.toml
 
 uv run python examples/service_desk/mock_tracker.py                     # terminal 1: the mock tracker
 npx -y @modelcontextprotocol/inspector@2.13.0 \
-    uv run clm-server examples/service_desk/scenario.toml --review        # terminal 2: the MCP Inspector
+    uv run decision-server examples/service_desk/scenario.toml --review        # terminal 2: the MCP Inspector
 ```
 
 In the Inspector ([getting started](../../docs/getting-started.md#2-look-inside-the-server)), connect and call
@@ -52,10 +52,10 @@ In the Inspector ([getting started](../../docs/getting-started.md#2-look-inside-
 
 ## Training CLM for the scenario
 
-As released, CLM routes poorly. `clm-train` (under [Run it](#run-it)) fits heads where they are served, in under
+As released, CLM routes poorly. `decision-train` (under [Run it](#run-it)) fits heads where they are served, in under
 a minute, from `scenario.examples.jsonl` (routes the scenario no longer has are left out) and your corrections,
 and saves `scenario.heads/` for the server's next start. For fresh examples, delete
-`scenario.examples.jsonl` and run `uv run clm-synthesize examples/service_desk/scenario.toml`.
+`scenario.examples.jsonl` and run `uv run decision-synthesize examples/service_desk/scenario.toml`.
 
 | Measure | Released heads | Trained heads |
 |---|---|---|

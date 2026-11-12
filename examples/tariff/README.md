@@ -88,9 +88,9 @@ small sample. The judgement is a reason for a person to look at Borealis Motors,
 ## Run it
 
 ```bash
-uv run clm-server examples/tariff/environment.toml     # serve it over MCP, for any agent
-uv run clm-agent examples/tariff/environment.toml "With the recent tariff hikes in Region A, should we shift our primary component sourcing for Product Line X to Region B, and what would be the impact on our Q3 profit margins and SLA delivery times?"
-uv run clm-agent examples/tariff/environment.toml "..." --backend ollama   # gemma4:26b
+uv run decision-server examples/tariff/environment.toml     # serve it over MCP, for any agent
+uv run decision-agent examples/tariff/environment.toml "With the recent tariff hikes in Region A, should we shift our primary component sourcing for Product Line X to Region B, and what would be the impact on our Q3 profit margins and SLA delivery times?"
+uv run decision-agent examples/tariff/environment.toml "..." --backend ollama   # gemma4:26b
 uv run python examples/tariff/judge_news.py   # the news measurement, with CLM
 ```
 
@@ -102,7 +102,7 @@ has news").
 
 ```bash
 set -a; . ./.neo4j-local.env; set +a
-uv run clm-load-graph examples/tariff/environment.toml
+uv run decision-load-graph examples/tariff/environment.toml
 ```
 
 ## What happened when the models were asked

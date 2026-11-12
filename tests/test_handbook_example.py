@@ -12,10 +12,10 @@ import pytest
 from fake_documents import FakeEmbedder, FakeStore
 from mcp import Client
 
-from clm_decision import serving
-from clm_decision.engine import Steps, run_scenario
-from clm_decision.environment import load_environment
-from clm_decision.environment_server import build_environment_server
+from mcp_decision_server import serving
+from mcp_decision_server.engine import Steps, run_scenario
+from mcp_decision_server.environment import load_environment
+from mcp_decision_server.environment_server import build_environment_server
 
 EXAMPLE = Path(__file__).parent.parent / "examples" / "handbook"
 KEY = tomllib.loads((EXAMPLE / "answer_key.toml").read_text(encoding="utf-8"))

@@ -8,8 +8,8 @@ import httpx
 import pytest
 
 import fetch_cases
-from clm_decision.documents import Collection
-from clm_decision.load_documents import read_jsonl
+from mcp_decision_server.documents import Collection
+from mcp_decision_server.load_documents import read_jsonl
 
 FILTERS = {"state": "string", "court": "string", "court_level": "string", "year": "integer", "decided": "date",
            "role": "string", "length_months": "number", "area": "string", "outcome": "string",

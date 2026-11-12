@@ -22,7 +22,7 @@ edges = "graph/edges.csv"
 
 [documents]
 backend = "postgres"
-password_env = "CLM_DOCUMENTS_PASSWORD"
+password_env = "DECISION_DOCUMENTS_PASSWORD"
 tools = false                             # the comparison run: the agent cannot search or read the documents
 
 [collections.statutes]

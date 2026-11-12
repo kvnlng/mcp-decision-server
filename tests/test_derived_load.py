@@ -9,11 +9,11 @@ from pathlib import Path
 import pytest
 from fake_documents import FakeEmbedder, FakeStore
 
-from clm_decision import derived
-from clm_decision.engine import rule_info, run_decision, run_query, run_scenario
-from clm_decision.environment import load_environment
-from clm_decision.environment_server import describe
-from clm_decision.scenario import ScenarioError
+from mcp_decision_server import derived
+from mcp_decision_server.engine import rule_info, run_decision, run_query, run_scenario
+from mcp_decision_server.environment import load_environment
+from mcp_decision_server.environment_server import describe
+from mcp_decision_server.scenario import ScenarioError
 
 TODAY = date(2026, 12, 1)
 FUNCTIONS = '''
@@ -181,7 +181,7 @@ def test_a_decision_whose_table_changed_since_its_check_is_not_admitted(tmp_path
     (tmp_path / "derived" / "rules" / "carry.dmn").write_text(DMN.replace(">7<", ">70<"), encoding="utf-8")
     env = load(path)
     assert "carry" not in env.decisions
-    assert env.unfilled["carry"] == "its DMN has changed since its check: run clm-derive check again"
+    assert env.unfilled["carry"] == "its DMN has changed since its check: run decision-derive check again"
 
 
 def test_a_checked_decision_is_not_admitted_by_default(tmp_path):
@@ -351,7 +351,7 @@ def test_a_broken_layer_with_a_derived_table_is_one_line(tmp_path, text):
 def test_a_decision_derived_from_an_undated_document_is_admitted(tmp_path):
     path = make(tmp_path, decision=entry(edition=None))
     layer = derived.read(tmp_path)
-    layer["decisions"]["carry"]["rule"]["version"] = ""      # what clm-derive run writes for an undated document
+    layer["decisions"]["carry"]["rule"]["version"] = ""      # what decision-derive run writes for an undated document
     derived.write(tmp_path, layer)
     undated = store()
     undated.replace("hb", [{"id": "hb-leave", "citation": "§ 5", "title": "Leave", "metadata": {},

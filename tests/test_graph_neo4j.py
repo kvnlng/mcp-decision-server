@@ -8,11 +8,11 @@ from pathlib import Path
 import pytest
 from conftest import ENV_TOML
 
-from clm_decision import load_graph
-from clm_decision.engine import StepError, run_query, run_scenario
-from clm_decision.environment import Query, load_environment
-from clm_decision.graph_neo4j import Neo4jConnector
-from clm_decision.scenario import ScenarioError
+from mcp_decision_server import load_graph
+from mcp_decision_server.engine import StepError, run_query, run_scenario
+from mcp_decision_server.environment import Query, load_environment
+from mcp_decision_server.graph_neo4j import Neo4jConnector
+from mcp_decision_server.scenario import ScenarioError
 
 EXAMPLE = Path(__file__).parent.parent / "examples" / "tariff" / "environment.toml"
 NEO4J = '''
@@ -133,7 +133,7 @@ def test_load_graph_writes_nodes_and_edges():
 def test_a_kind_that_cannot_be_a_label_is_refused(tmp_path):
     (tmp_path / "nodes.csv").write_text("id,kind,name\nA,bad kind!,A\n", encoding="utf-8")
     (tmp_path / "edges.csv").write_text("source,relation,target\n", encoding="utf-8")
-    from clm_decision.graph import Graph  # pylint: disable=import-outside-toplevel
+    from mcp_decision_server.graph import Graph  # pylint: disable=import-outside-toplevel
     with pytest.raises(ValueError, match="kind 'bad kind!' cannot be a Neo4j label"):
         load_graph.load(Graph.from_csv(tmp_path / "nodes.csv", tmp_path / "edges.csv"), FakeDriver(), "neo4j")
 
@@ -148,7 +148,7 @@ def test_a_load_that_fails_partway_changes_nothing():
 
 def test_kinds_or_relations_differing_only_in_case_are_refused(tmp_path):
     """Neo4j would merge them into one label or type, where the built-in graph keeps them apart."""
-    from clm_decision.graph import Graph  # pylint: disable=import-outside-toplevel
+    from mcp_decision_server.graph import Graph  # pylint: disable=import-outside-toplevel
     (tmp_path / "nodes.csv").write_text("id,kind,name\nA,site,A\nB,Site,B\n", encoding="utf-8")
     (tmp_path / "edges.csv").write_text("source,relation,target\n", encoding="utf-8")
     with pytest.raises(ValueError, match="^kinds 'Site' and 'site' both become the label :Site$"):
@@ -193,7 +193,7 @@ def test_the_two_graphs_agree():
 @pytest.mark.parametrize("uri", ["localhost:7687", "foo://127.0.0.1:7687"])
 def test_a_malformed_uri_is_one_line(uri, recwarn):
     pytest.importorskip("neo4j")
-    from clm_decision.graph_neo4j import connect  # pylint: disable=import-outside-toplevel
+    from mcp_decision_server.graph_neo4j import connect  # pylint: disable=import-outside-toplevel
     with pytest.raises(ScenarioError, match=f"^graph.neo4j: cannot connect to {uri}") as caught:
         connect(uri, "neo4j", "not-a-real-password")
     assert "\n" not in str(caught.value)
@@ -202,7 +202,7 @@ def test_a_malformed_uri_is_one_line(uri, recwarn):
 
 def test_a_kind_that_becomes_the_base_label_is_refused(tmp_path):
     """Every node carries :Node, so a kind named node would match every node in Neo4j."""
-    from clm_decision.graph import Graph  # pylint: disable=import-outside-toplevel
+    from mcp_decision_server.graph import Graph  # pylint: disable=import-outside-toplevel
     (tmp_path / "nodes.csv").write_text("id,kind,name\nA,node,A\n", encoding="utf-8")
     (tmp_path / "edges.csv").write_text("source,relation,target\n", encoding="utf-8")
     with pytest.raises(ValueError, match="^kind 'node' becomes the label :Node, which every node carries$"):

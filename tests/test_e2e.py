@@ -11,7 +11,7 @@ import service_desk_tools
 from desk_routing_cases import CASES
 from mcp import Client
 
-from clm_decision import server
+from mcp_decision_server import server
 
 pytestmark = pytest.mark.slow
 

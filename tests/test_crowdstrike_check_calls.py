@@ -5,7 +5,7 @@ from conftest import FakeRouter
 from test_crowdstrike_tools import SCENARIO
 
 from check_calls import PROPOSALS, check, report
-from clm_decision.scenario import load_scenario
+from mcp_decision_server.scenario import load_scenario
 
 
 class RefundMinded(FakeRouter):

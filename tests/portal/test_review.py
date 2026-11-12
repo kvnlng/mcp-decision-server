@@ -8,7 +8,7 @@ import re
 import pytest
 from starlette.testclient import TestClient
 
-from clm_decision.portal import layer, web
+from mcp_decision_server.portal import layer, web
 from .conftest import KEY, ORIGIN, FakeServer, dmn, post, sign_in, source
 
 FACT = "k401_2026.match_cap"
@@ -89,7 +89,7 @@ def test_a_correction_clears_the_check_sets_proposed_and_runs_clm_derive_check(c
     assert entry["check"] is None and entry["status"] == "proposed"
     assert (environment.parent / "derived" / "rules" / "carryover_limit.dmn").read_text() == GOOD_DMN
     assert [argv[1:] for argv in runner.seen] == [["check", str(environment)]] * 2
-    assert runner.seen[0][0].endswith("clm-derive")
+    assert runner.seen[0][0].endswith("decision-derive")
     assert post(client, "/review/decisions/carryover_limit/approve", token).status_code == 409
     assert post(client, f"/review/facts/{FACT}/correct", token, {"value": "{not json"}).status_code == 400
 
@@ -175,12 +175,12 @@ def test_an_entry_and_a_document_whose_names_hold_a_slash_can_be_acted_on(client
                                                                            "id": "hb/leave"}).text
 
 
-@pytest.mark.parametrize("installed", [{"clm-server", "clm-load-documents"}])
+@pytest.mark.parametrize("installed", [{"decision-server", "decision-load-documents"}])
 def test_a_correction_without_clm_derive_says_so_as_an_error(client, environment):
     token = sign_in(client)
     response = post(client, f"/review/facts/{FACT}/correct", token, {"value": "6300"})
     assert response.status_code == 200 and layer_of(environment)["facts"][FACT]["value"] == 6300
-    shown = re.search(r'<p class="(\w+)">[^<]*clm-derive is not installed', response.text)
+    shown = re.search(r'<p class="(\w+)">[^<]*decision-derive is not installed', response.text)
     assert shown and shown.group(1) == "failed"
 
 

@@ -5,9 +5,9 @@ import pytest
 from conftest import ENV_TOML
 from fake_documents import FakeEmbedder, FakeStore
 
-from clm_decision.documents import DocumentSettings, document_settings, documents_password
-from clm_decision.environment import load_environment
-from clm_decision.scenario import ScenarioError
+from mcp_decision_server.documents import DocumentSettings, document_settings, documents_password
+from mcp_decision_server.environment import load_environment
+from mcp_decision_server.scenario import ScenarioError
 
 DOCUMENTS = '''
 [documents]
@@ -68,7 +68,7 @@ def test_only_postgres_is_a_backend(write_environment):
 
 def test_settings_have_defaults():
     settings = document_settings({"documents": {}})
-    assert settings == DocumentSettings("127.0.0.1", 5432, "clm_documents", "clm", "CLM_DOCUMENTS_PASSWORD",
+    assert settings == DocumentSettings("127.0.0.1", 5432, "clm_documents", "clm", "DECISION_DOCUMENTS_PASSWORD",
                                         "http://127.0.0.1:11434")
 
 

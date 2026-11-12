@@ -7,9 +7,9 @@ import pytest
 from conftest import ENV_TOML
 from mcp import Client
 
-from clm_decision.environment import load_environment
-from clm_decision.environment_server import build_environment_server
-from clm_decision.scenario import ScenarioError
+from mcp_decision_server.environment import load_environment
+from mcp_decision_server.environment_server import build_environment_server
+from mcp_decision_server.scenario import ScenarioError
 
 TARIFF = Path(__file__).parent.parent / "examples" / "tariff" / "environment.toml"
 

@@ -170,8 +170,9 @@ call fits and whether it is approved. The keys and how well it did:
 
 ## Corrections and reuse
 
-With `clm-server --review`, the server also offers `correct` and `agreement`. What each does, the `[record]` keys
-and what `clm-evaluate` and `clm-train` do with the record: [reference](scenario-reference.md#corrections-and-reuse).
+With `decision-server --review`, the server also offers `correct` and `agreement`. What each does, the `[record]` keys
+and what `decision-evaluate` and `decision-train` do with the record:
+[reference](scenario-reference.md#corrections-and-reuse).
 
 ## Other settings
 

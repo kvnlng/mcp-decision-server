@@ -21,19 +21,20 @@ from starlette.routing import Route
 from starlette.testclient import TestClient
 from test_derived_load import PARTS, entry, make, store
 
-from clm_decision.admin import Admin
-from clm_decision.checks import Checks
-from clm_decision.environment import load_environment
-from clm_decision.environment_server import build_environment_server
-from clm_decision.portal import live, managed, web
-from clm_decision.server import KeySet
-from clm_decision.scenario import ScenarioError
+from mcp_decision_server.admin import Admin
+from mcp_decision_server.checks import Checks
+from mcp_decision_server.environment import load_environment
+from mcp_decision_server.environment_server import build_environment_server
+from mcp_decision_server.portal import live, managed, web
+from mcp_decision_server.server import KeySet
+from mcp_decision_server.scenario import ScenarioError
 from .conftest import KEY, ORIGIN, post, sign_in
 from .test_chat import reply, scripted
 
 
 def build(path: Path) -> live.LiveServer:
-    """The agents' server on the environment at `path`, its documents in memory, as clm-server --portal builds it."""
+    """The agents' server on the environment at `path`, its documents in memory, as decision-server --portal builds
+    it."""
     admin = Admin.for_environment(path)
     server = build_environment_server(load_environment(path, store=store(), embedder=FakeEmbedder()), admin=admin)
     return live.LiveServer(server, admin, Checks(server, None, None))
@@ -126,7 +127,7 @@ def test_testing_that_cannot_start_stays_off(tmp_path):
 
 
 def test_a_failed_reload_never_shows_a_secret(server, monkeypatch):
-    monkeypatch.setenv("CLM_DOCUMENTS_PASSWORD", "a-long-database-password")
+    monkeypatch.setenv("DECISION_DOCUMENTS_PASSWORD", "a-long-database-password")
 
     def refuse(*args, **kwargs):
         raise ScenarioError("cannot connect as clm:a-long-database-password@localhost")

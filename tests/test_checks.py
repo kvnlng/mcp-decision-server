@@ -13,13 +13,13 @@ from conftest import ENV_TOML, JUDGE_TOML
 from fake_documents import FakeEmbedder
 from test_environment_resources import copied, load as load_handbook
 
-from clm_decision import checks as checks_module
-from clm_decision import derived, oauth, tracing
-from clm_decision.admin import Admin
-from clm_decision.checks import Checks
-from clm_decision.environment import load_environment
-from clm_decision.environment_server import build_environment_server, infrastructure, reload
-from clm_decision.scenario import ScenarioError
+from mcp_decision_server import checks as checks_module
+from mcp_decision_server import derived, oauth, tracing
+from mcp_decision_server.admin import Admin
+from mcp_decision_server.checks import Checks
+from mcp_decision_server.environment import load_environment
+from mcp_decision_server.environment_server import build_environment_server, infrastructure, reload
+from mcp_decision_server.scenario import ScenarioError
 
 
 @pytest.fixture

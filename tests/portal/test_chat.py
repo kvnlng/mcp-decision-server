@@ -9,7 +9,7 @@ import pytest
 from mcp import Client
 from mcp.server import MCPServer
 
-from clm_decision.portal import chat as tc
+from mcp_decision_server.portal import chat as tc
 
 
 class Tracker:

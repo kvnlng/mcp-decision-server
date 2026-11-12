@@ -8,8 +8,8 @@ import pytest
 import mock_tracker
 import service_desk_tools as desk
 
-from clm_decision.scenario import load_scenario
-from clm_decision.tools import check_tools, load_tools
+from mcp_decision_server.scenario import load_scenario
+from mcp_decision_server.tools import check_tools, load_tools
 
 EXAMPLE = Path(__file__).parent.parent / "examples" / "service_desk"
 

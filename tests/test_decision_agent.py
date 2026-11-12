@@ -13,13 +13,13 @@ import pytest
 from conftest import free_port, serving
 from mcp import Client
 
-from clm_decision import server
-from clm_decision.connection import connect
-from clm_decision.decision_agent import (MAX_TURNS, NO_TOOLS_SYSTEM, AgentError, ClaudeChat, OllamaChat, answer, main,
-                                         server_params)
-from clm_decision.environment import load_environment
-from clm_decision.environment_server import build_environment_server
-from clm_decision.serving import Serve
+from mcp_decision_server import server
+from mcp_decision_server.connection import connect
+from mcp_decision_server.decision_agent import (MAX_TURNS, NO_TOOLS_SYSTEM, AgentError, ClaudeChat, OllamaChat,
+                                                answer, main, server_params)
+from mcp_decision_server.environment import load_environment
+from mcp_decision_server.environment_server import build_environment_server
+from mcp_decision_server.serving import Serve
 
 EXAMPLE = Path(__file__).parent.parent / "examples" / "tariff" / "environment.toml"
 QUESTION = "Should we move Product Line X's sourcing to Region B?"
@@ -402,8 +402,8 @@ async def test_system_says_when_a_rule_was_derived(mcp_server):
 
 def test_system_is_the_shared_instructions_byte_for_byte():
     import hashlib  # pylint: disable=import-outside-toplevel
-    from clm_decision import instructions  # pylint: disable=import-outside-toplevel
-    from clm_decision.decision_agent import SYSTEM  # pylint: disable=import-outside-toplevel
+    from mcp_decision_server import instructions  # pylint: disable=import-outside-toplevel
+    from mcp_decision_server.decision_agent import SYSTEM  # pylint: disable=import-outside-toplevel
     # The text before it moved to instructions.py: 1532 characters with this digest
     assert SYSTEM == instructions.agent_system()
     assert len(SYSTEM) == 1532
@@ -459,7 +459,7 @@ def test_two_runs_in_the_same_second_keep_both_answers(tmp_path, monkeypatch):
         @classmethod
         def now(cls, tz=None):
             return datetime(2026, 11, 4, 12, 0, 0, tzinfo=tz)
-    monkeypatch.setattr("clm_decision.decision_agent.datetime", Frozen)
+    monkeypatch.setattr("mcp_decision_server.decision_agent.datetime", Frozen)
     claude = FakeClaude(message(text("First.")), message(text("Second.")))
     monkeypatch.setattr("anthropic.AsyncAnthropic", lambda: claude)
     for _ in range(2):

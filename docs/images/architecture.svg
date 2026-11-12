@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="48 104 1192 824" width="1192" height="824" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">
-  <title>C4 container diagram: an MCP agent calls the MCP server; the portal reaches it in process; the server uses CLM, the environment and the document store, and acts on your systems; clm-derive derives rules from documents</title>
+  <title>C4 container diagram: an MCP agent calls the MCP server; the portal reaches it in process; the server uses CLM, the environment and the document store, and acts on your systems; decision-derive derives rules from documents</title>
   <style>
     .bg { fill: #ffffff; }
     .person { fill: #08427b; }
@@ -29,7 +29,7 @@
   </defs>
   <rect class="bg" x="48" y="104" width="1192" height="824" rx="12"/>
   <rect class="frame" x="64" y="288" width="1160" height="624" rx="8"/>
-  <text class="frame-label" x="80" y="892"><tspan font-weight="600">CLM decision server</tspan> [Software System]</text>
+  <text class="frame-label" x="80" y="892"><tspan font-weight="600">MCP decision server</tspan> [Software System]</text>
   <path class="line" d="M236,496 L1052,496"/>
   <path class="line" d="M236,232 L236,335" marker-end="url(#arrow)"/>
   <path class="line" d="M1052,232 L1052,335" marker-end="url(#arrow)"/>
@@ -83,7 +83,7 @@
   <text class="desc" x="1052" y="614" text-anchor="middle">Documents, passages</text>
   <text class="desc" x="1052" y="634" text-anchor="middle">and citations</text>
   <rect class="cont" x="912" y="736" width="280" height="120" rx="6"/>
-  <text class="name" x="1052" y="760" text-anchor="middle">clm-derive</text>
+  <text class="name" x="1052" y="760" text-anchor="middle">decision-derive</text>
   <text class="tech" x="1052" y="784" text-anchor="middle">[Container: Python CLI]</text>
   <text class="desc" x="1052" y="804" text-anchor="middle">Derives rules from documents</text>
   <text class="desc" x="1052" y="824" text-anchor="middle">and checks them;</text>

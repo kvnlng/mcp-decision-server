@@ -1,30 +1,30 @@
 # The portal
 
 The portal is a page for the person who administers a decision server. It is served by the server itself, on a
-second port of the same process, so it sees exactly what agents see. It is part of the `clm-decision-agent` package
-(`clm_decision.portal`) and runs from a checkout with [uv](https://docs.astral.sh/uv/).
+second port of the same process, so it sees exactly what agents see. It is part of the `mcp-decision-server` package
+(`mcp_decision_server.portal`) and runs from a checkout with [uv](https://docs.astral.sh/uv/).
 
 ```bash
 export DECISION_SERVER_KEY=<a long random key>                         # the agents' key
-export CLM_PORTAL_KEY=<another long random key>                        # signs in to the page
+export DECISION_PORTAL_KEY=<another long random key>                        # signs in to the page
 set -a; . ./.postgres-local.env; set +a                                # if the environment has documents
-uv run clm-server examples/handbook/environment.toml --http --portal 8400
+uv run decision-server examples/handbook/environment.toml --http --portal 8400
 ```
 
 Agents use <http://127.0.0.1:8000/mcp> as before; the page is at <http://127.0.0.1:8400>. Sign in with the portal key
 and your name, which is recorded with every change and not checked. A wrong key waits half a second. Sessions last 12
 hours in memory, so a restart signs everyone out.
 
-| Flag of `clm-server` | Default | |
+| Flag of `decision-server` | Default | |
 |---|---|---|
-| `--portal PORT` | off | Serve the portal on this port. Needs `--http`, an environment file (not a scenario) and `CLM_PORTAL_KEY` |
+| `--portal PORT` | off | Serve the portal on this port. Needs `--http`, an environment file (not a scenario) and `DECISION_PORTAL_KEY` |
 | `--portal-host HOST` | `127.0.0.1` | Another address warns that it is plain HTTP; open the page at that address, not `0.0.0.0`, since any other `Host` is refused |
 | `--portal-public-origin URL` | none | The browser's address behind a TLS-ending proxy, such as `https://portal.example.org`; forms and `Host` are accepted from it, and `https://` makes the cookie `Secure` |
 | `--ask-backend`, `--ask-model`, `--ask-model-url` | [as Ask](#ask) | Ask's starting model, changeable on the page; `LLM_API_KEY` goes only to this `--ask-model-url`, never to one typed on the page |
 
 | Variable | |
 |---|---|
-| `CLM_PORTAL_KEY` | Signs in to the page; at least 16 characters; not a key agents use |
+| `DECISION_PORTAL_KEY` | Signs in to the page; at least 16 characters; not a key agents use |
 | `DECISION_SERVER_KEY` | The agents' key (or `--key-file` keys); Ask calls the server in the same process, so it needs none |
 | `LLM_API_KEY` | The model's key, if it needs one |
 
@@ -46,21 +46,21 @@ offered rather than when it was built. Jobs run with neither the portal key nor 
 |---|---|---|
 | Configuration | Name, description, Inspector command ([getting started](getting-started.md#2-look-inside-the-server)), every rule (supplied or derived: origin, status, owner, version, DMN rows, cited passages), information items, graph nodes and edges (Neo4j: named only), collections with build time, load errors; read from files, not the server | Nothing; **Reload** reads the files again |
 | Ask | A model answers from the server's tools, every call and result shown ([below](#ask)); a dry run of all or named tools (an unknown name sends nothing); **Full results** past 1,500 characters; one conversation per session | **Testing** gives Ask its own private server that admits derived entries with status `proposed`, `checked` or `approved`, flagged on every page; off at start, offered only with `[derived]`. Agents never see unapproved rules |
-| Review | Derived decisions, facts and conflicts, each with its cited passage (or quote), check, supplied value and graph row | Approve (after `clm-derive check` passes), reject or resolve, with name and note recorded; an approval reloads. **Correct** a value or DMN table (inside `derived/`; it must load): the entry goes back to proposed and the check reruns |
-| Documents | Collections | Load or upload a `.jsonl` into the folder (safe name; overwrite only if ticked) via `clm-load-documents`; **Derive** runs `clm-derive run`, unavailable without `clm-derive` |
+| Review | Derived decisions, facts and conflicts, each with its cited passage (or quote), check, supplied value and graph row | Approve (after `decision-derive check` passes), reject or resolve, with name and note recorded; an approval reloads. **Correct** a value or DMN table (inside `derived/`; it must load): the entry goes back to proposed and the check reruns |
+| Documents | Collections | Load or upload a `.jsonl` into the folder (safe name; overwrite only if ticked) via `decision-load-documents`; **Derive** runs `decision-derive run`, unavailable without `decision-derive` |
 | Server | The running server: name, files, versions, mode, offered tools, checks, credentials | **Run checks now**; **Disable** or **Enable** a tool |
 
 The Server page is described next. The other pages change only documents and the derived layer
-(`derived/derived.json`, through `clm_decision.derived`, and the tables in `derived/`), and only in the files, so git
-stays the record; no supplied file changes. They run one job or change at a time; job output shows keys and passwords
-as `***`.
+(`derived/derived.json`, through `mcp_decision_server.derived`, and the tables in `derived/`), and only in the files, so
+git stays the record; no supplied file changes. They run one job or change at a time; job output shows keys and
+passwords as `***`.
 
 ### The Server page
 
 - **Checks** run every 60 seconds and on demand, and show each one's status, detail, last success and last error, and
   the tools it affects: `clm`, `postgres`, `neo4j`, `oauth`, `trace`, `tools` and `describe`. A tool's
   `infrastructure` ([reference](environment-reference.md#the-file)) says which checks it depends on. The
-  server's own calls are marked `synthetic` in the trace and left out of `clm-trace-report`.
+  server's own calls are marked `synthetic` in the trace and left out of `decision-trace-report`.
 - **Tools** lists the offered tools, with whether each is read only, enabled or disabled, and what it runs on. Disable
   stops a tool at once (a call is refused) and tells agents the list changed, but a client may keep the list it
   fetched for up to 30 seconds, longer if it is an older client. The choice is kept in `disabled_tools.json` beside

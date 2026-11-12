@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 
 import pytest
 
-from clm_decision import trace_report
+from mcp_decision_server import trace_report
 
 
 def record(started, caller=None, error=None, **extra):

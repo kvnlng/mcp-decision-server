@@ -1,15 +1,15 @@
-"""Tests for new_environment.py: clm-new-environment writes a small environment that loads and decides."""
+"""Tests for new_environment.py: decision-new-environment writes a small environment that loads and decides."""
 # Test names say what they check.
 # pylint: disable=missing-function-docstring
-from clm_decision import engine
-from clm_decision.environment import load_environment
-from clm_decision.new_environment import main
+from mcp_decision_server import engine
+from mcp_decision_server.environment import load_environment
+from mcp_decision_server.new_environment import main
 
 
 def test_the_new_environment_loads_and_decides(tmp_path, capsys):
     folder = tmp_path / "team-offsite"
     assert main([str(folder)]) == 0
-    assert "@modelcontextprotocol/inspector@2.13.0 uv run clm-server" in capsys.readouterr().out
+    assert "@modelcontextprotocol/inspector@2.13.0 uv run decision-server" in capsys.readouterr().out
     env = load_environment(folder / "environment.toml")
     result = engine.run_scenario(env, "offsite", {"team": "T1", "days": 2})
     branches = {branch["levers"]["venue"]: branch for branch in result["branches"]}
@@ -17,7 +17,7 @@ def test_the_new_environment_loads_and_decides(tmp_path, capsys):
     assert branches["V2"]["status"] == "rejected"
     assert branches["V2"]["rejected_by"][0]["reason"] == "The venue is too small for everyone"
     assert (folder / "team_offsite_functions.py").exists()
-    # clm-agent writes its runs beside the environment; they stay out of git wherever the folder is
+    # decision-agent writes its runs beside the environment; they stay out of git wherever the folder is
     assert (folder / ".gitignore").read_text(encoding="utf-8") == "runs/\n"
 
 

@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1044 520" width="1044" height="520" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">
-  <title>The statuses of a derived rule or fact: clm-derive run proposes it, the mechanical check marks it checked, a person approves or rejects it, and a new edition or an edited table sends it back to proposed; a conflict with a supplied fact is open until a person resolves it</title>
+  <title>The statuses of a derived rule or fact: decision-derive run proposes it, the mechanical check marks it checked, a person approves or rejects it, and a new edition or an edited table sends it back to proposed; a conflict with a supplied fact is open until a person resolves it</title>
   <style>
     .bg { fill: #ffffff; }
     .agent { fill: #6b6b6b; }
@@ -48,7 +48,7 @@
   <text class="name" x="590" y="305.5" text-anchor="middle">rejected</text>
   <text class="sub" x="590" y="325.5" text-anchor="middle">never decides</text>
   <path class="line" d="M72,150 L199,150" marker-end="url(#arrow)"/>
-  <text class="label" x="136" y="140" text-anchor="middle">clm-derive run</text>
+  <text class="label" x="136" y="140" text-anchor="middle">decision-derive run</text>
   <path class="line" d="M380,150 L499,150" marker-end="url(#arrow)"/>
   <text class="label" x="440" y="140" text-anchor="middle">passes the check</text>
   <path class="line" d="M680,150 L799,150" marker-end="url(#arrow)"/>

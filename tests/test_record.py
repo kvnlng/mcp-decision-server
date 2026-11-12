@@ -10,10 +10,10 @@ import pytest
 from cryptography.fernet import Fernet
 from conftest import BASE_TOML
 
-from clm_decision.record import (append_record, check_record, load_records, locked_lines, new_key, record_key,
-                                 route_verdicts, save_correction, skipped_note)
-from clm_decision.record import main as record_main
-from clm_decision.scenario import ScenarioError, load_scenario
+from mcp_decision_server.record import (append_record, check_record, load_records, locked_lines, new_key, record_key,
+                                        route_verdicts, save_correction, skipped_note)
+from mcp_decision_server.record import main as record_main
+from mcp_decision_server.scenario import ScenarioError, load_scenario
 
 
 def route_record(state_text, clm, human):

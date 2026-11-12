@@ -1,4 +1,4 @@
-"""Tests for connection.py: how clm-agent reaches a decision server, a file over stdio or a URL over HTTP."""
+"""Tests for connection.py: how decision-agent reaches a decision server, a file over stdio or a URL over HTTP."""
 # Test names say what they check, and pytest fixtures are used by repeating their names.
 # pylint: disable=missing-function-docstring,redefined-outer-name
 from pathlib import Path
@@ -8,10 +8,10 @@ import pytest
 from conftest import free_port, serving
 from mcp import Client
 
-from clm_decision import server
-from clm_decision.connection import connect, is_url, key_for, refusal, withheld
-from clm_decision.environment import load_environment
-from clm_decision.environment_server import build_environment_server
+from mcp_decision_server import server
+from mcp_decision_server.connection import connect, is_url, key_for, refusal, withheld
+from mcp_decision_server.environment import load_environment
+from mcp_decision_server.environment_server import build_environment_server
 
 EXAMPLE = Path(__file__).parent.parent / "examples" / "tariff" / "environment.toml"
 

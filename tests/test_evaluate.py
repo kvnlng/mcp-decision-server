@@ -8,11 +8,11 @@ import json
 import pytest
 from conftest import FakeRouter, decision
 
-from clm_decision import clm_router
-from clm_decision.evaluate import (agreement, confidence_bands, evaluate, format_cases_report, format_report, main,
-                                   match_report, score_cases, suggest_threshold)
-from clm_decision.record import save_correction
-from clm_decision.scenario import load_scenario
+from mcp_decision_server import clm_router
+from mcp_decision_server.evaluate import (agreement, confidence_bands, evaluate, format_cases_report, format_report,
+                                          main, match_report, score_cases, suggest_threshold)
+from mcp_decision_server.record import save_correction
+from mcp_decision_server.scenario import load_scenario
 
 
 def route_record(state_text, clm, human):

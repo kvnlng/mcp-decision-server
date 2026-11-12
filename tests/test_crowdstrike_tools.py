@@ -18,10 +18,10 @@ from policy import ROUTES, answer
 from world import World
 from write_examples import example
 
-from clm_decision import decision
-from clm_decision.dataset import training_rows
-from clm_decision.scenario import load_scenario
-from clm_decision.tools import load_tools
+from mcp_decision_server import decision
+from mcp_decision_server.dataset import training_rows
+from mcp_decision_server.scenario import load_scenario
+from mcp_decision_server.tools import load_tools
 
 SCENARIO = Path(__file__).parent.parent / "examples" / "crowdstrike" / "scenario.toml"
 HIDDEN = {"deadline": 870, "deadline_kind": "firm", "purpose": "a wedding", "still_travelling": False,

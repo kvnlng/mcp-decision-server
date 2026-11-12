@@ -7,13 +7,13 @@ import pytest
 from test_risk import RISK_FUNCTIONS, RISK_TOML
 from test_rules import RULES_TOML, one_input_dmn
 
-from clm_decision import decision_record, engine
-from clm_decision.environment import load_environment
-from clm_decision.environment_server import rules_for
+from mcp_decision_server import decision_record, engine
+from mcp_decision_server.environment import load_environment
+from mcp_decision_server.environment_server import rules_for
 
 
 def call(tool, arguments, result=None, error=None):
-    """A call as clm-agent records it, with the result as it arrives over MCP (JSON)."""
+    """A call as decision-agent records it, with the result as it arrives over MCP (JSON)."""
     return {"tool": tool, "arguments": arguments, "result": json.loads(json.dumps(result)), "error": error}
 
 

@@ -1,4 +1,4 @@
-"""Tests for oauth.py and `clm-server --auth oauth`: tokens from an OIDC issuer, checked as JWTs."""
+"""Tests for oauth.py and `decision-server --auth oauth`: tokens from an OIDC issuer, checked as JWTs."""
 # Test names say what they check, and pytest fixtures are used by repeating their names.
 # pylint: disable=missing-function-docstring,redefined-outer-name
 import asyncio
@@ -14,11 +14,11 @@ from mcp import Client
 from mcp.client.streamable_http import streamable_http_client
 from test_server import parts  # noqa: F401 pylint: disable=unused-import
 
-from clm_decision import oauth
-from clm_decision import server
-from clm_decision.environment import load_environment
-from clm_decision.environment_server import build_environment_server
-from clm_decision import tracing
+from mcp_decision_server import oauth
+from mcp_decision_server import server
+from mcp_decision_server.environment import load_environment
+from mcp_decision_server.environment_server import build_environment_server
+from mcp_decision_server import tracing
 
 ISSUER = "https://login.example.test/realms/clm"
 AUDIENCE = "decision-server"

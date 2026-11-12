@@ -19,7 +19,7 @@ from mcp import Client
 from mcp.server import MCPServer
 from starlette.testclient import TestClient
 
-from clm_decision.portal import live, managed, web
+from mcp_decision_server.portal import live, managed, web
 
 KEY = "test-portal-key-not-a-secret"
 ORIGIN = "http://127.0.0.1:8400"
@@ -193,7 +193,7 @@ def runner():
 @pytest.fixture
 def installed() -> set:
     """The console scripts the jobs find; take one out to see it missing."""
-    return {"clm-server", "clm-load-documents", "clm-derive"}
+    return {"decision-server", "decision-load-documents", "decision-derive"}
 
 
 @pytest.fixture

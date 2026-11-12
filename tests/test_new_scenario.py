@@ -6,12 +6,12 @@ import json
 import pytest
 from conftest import FakeRouter
 
-from clm_decision import clm_router
-from clm_decision import decision
-from clm_decision import evaluate
-from clm_decision.new_scenario import main
-from clm_decision.scenario import load_scenario
-from clm_decision.tools import load_tools
+from mcp_decision_server import clm_router
+from mcp_decision_server import decision
+from mcp_decision_server import evaluate
+from mcp_decision_server.new_scenario import main
+from mcp_decision_server.scenario import load_scenario
+from mcp_decision_server.tools import load_tools
 
 
 @pytest.fixture
@@ -73,9 +73,9 @@ def test_an_existing_folder_with_files_is_left_alone(tmp_path, capsys):
 
 
 def test_the_backend_suits_the_machine(tmp_path, monkeypatch):
-    monkeypatch.setattr("clm_decision.new_scenario.mlx_available", lambda: False)
+    monkeypatch.setattr("mcp_decision_server.new_scenario.mlx_available", lambda: False)
     assert main([str(tmp_path / "linux")]) == 0
     assert load_scenario(tmp_path / "linux" / "scenario.toml").clm_backend == "torch"
-    monkeypatch.setattr("clm_decision.new_scenario.mlx_available", lambda: True)
+    monkeypatch.setattr("mcp_decision_server.new_scenario.mlx_available", lambda: True)
     assert main([str(tmp_path / "mac")]) == 0
     assert load_scenario(tmp_path / "mac" / "scenario.toml").clm_backend == "mlx"

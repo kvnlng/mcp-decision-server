@@ -1,0 +1,224 @@
+"""The decision record: what a financial officer, or anyone checking an answer, reads instead of the chat.
+
+It is built only from the tools' results, in the order they were called, so the same calls give the same record, and
+it works for a server reached by URL as well as one started from a file. It holds the question; what the person
+asking supplied; the rules that applied, with what each says, why it exists, its owner and version; every fact and
+estimate used, an estimate with its range, source and date; each scenario's branches with the limits that rejected
+them, the warnings at an estimate's low and high, the headroom and the approvals needed; what is still to ask; and
+any call that failed. The agent's own explanation is added beside it, marked as not checked.
+"""
+from __future__ import annotations
+
+import json
+import math
+import re
+
+from . import citation_check, number_check
+
+_RANGE_KEYS = ("low", "central", "high", "source", "as_of")
+
+
+def _information(record: dict, steps: list[dict], descriptions: dict) -> None:
+    """Add each query a run used, once per query and inputs, with its rows; an estimate's with their ranges and
+    sources."""
+    for step in steps:
+        # A failed query returned nothing; the branch's error says why
+        if step["kind"] != "query" or step.get("case", "central") != "central" or step.get("error"):
+            continue
+        item = {"query": step["name"], "kind": step.get("information", "fact"), "inputs": step["inputs"],
+                "description": descriptions.get(step["name"], "")}
+        item["rows"] = [{key: row[key] for key in _RANGE_KEYS} for row in step["result"]] \
+            if item["kind"] == "estimate" else step["result"]
+        if step.get("origin") == "derived":
+            item.update(origin="derived", derived=step["derived"], sources=step.get("sources", {}))
+        if not any(seen["query"] == item["query"] and seen["inputs"] == item["inputs"]
+                   for seen in record["information"]):
+            record["information"].append(item)
+
+
+def _documents(record: dict, steps: list[dict]) -> None:
+    """Every passage a search or document step returned, and every passage of a document a rule cited, once, with
+    its collection and when it was built."""
+    for step in steps:
+        if step.get("error"):
+            continue
+        if step["kind"] == "search":
+            passages = [(step["name"], step["built_at"], row["document"], row["citation"], row["passage"], row["text"])
+                        for row in step["result"]]
+        elif step["kind"] == "document":
+            found = step["result"]
+            passages = [(step["name"], step["built_at"], found["id"], found["citation"], p["label"], p["text"])
+                        for p in found["passages"]]
+        elif step["kind"] == "decision" and step.get("citations"):
+            passages = [(cited["collection"], cited["built_at"], cited["id"], cited["citation"], p["label"], p["text"])
+                        for cited in step["citations"] for p in cited.get("passages", [])]
+        else:
+            continue
+        for collection, built_at, document, citation, passage, text in passages:
+            item = {"collection": collection, "built_at": built_at, "document": document,
+                    "citation": citation, "passage": passage, "text": text}
+            if item not in record["documents"]:
+                record["documents"].append(item)
+
+
+def _in_question(value, question: str) -> bool:
+    """Whether the person asking gave this value: text the question holds as a word ("NY" is not in "any"), or a
+    figure it holds in any of the figure's scales ("20%" gives 20 and 0.2), small numbers and years too. True or
+    false is never found, so it counts as chosen by the agent."""
+    if isinstance(value, str):
+        text = value.strip()
+        return bool(text) and re.search(rf"(?<!\w){re.escape(text)}(?!\w)", question, re.IGNORECASE) is not None
+    if isinstance(value, (int, float)) and not isinstance(value, bool):
+        return any(math.isclose(figure.value * scale, value, rel_tol=1e-9, abs_tol=1e-9)
+                   for figure in number_check.figures(question) for scale in figure.scales)
+    return False
+
+
+def _scenario(result: dict) -> dict:
+    keys = ("levers", "status", "figures", "rejected_by", "warnings", "headroom", "approvals", "error")
+    return {"scenario": result["scenario"], "supplied": result.get("supplied", {}),
+            "objective": result["objective"], "maximise": result["maximise"],
+            "best": result["best"], "ranking": result["ranking"],
+            "branches": [{key: branch.get(key) for key in keys} for branch in result["branches"]]}
+
+
+def build(question: str, calls: list[dict]) -> dict:
+    """The record of one answer, from the calls decision-agent made: each {"tool", "arguments", "result", "error"}."""
+    record: dict = {"question": question, "supplied": {}, "chosen_by_agent": {}, "rules": {}, "rules_consulted": {},
+                    "information": [], "documents": [], "scenarios": [], "to_ask": [], "failed_calls": []}
+    asked: list[dict] = []
+    for call in calls:
+        tool, result = call["tool"], call["result"]
+        if call["error"] or not isinstance(result, dict):
+            record["failed_calls"].append({"tool": tool, "error": call["error"] or "no result"})
+            continue
+        if tool.startswith("scenario_"):
+            # A parameter is supplied only if the question gives it; otherwise the agent chose it
+            for name, value in result.get("supplied", {}).items():
+                found = record["supplied" if _in_question(value, question) else "chosen_by_agent"]
+                if value not in found.setdefault(name, []):
+                    found[name].append(value)
+            record["rules"].update(result.get("rules", {}))
+            descriptions = {name: item["description"] for name, item in result.get("information", {}).items()}
+            for branch in result["branches"]:
+                _information(record, branch["steps"], descriptions)
+                _documents(record, branch["steps"])
+            record["scenarios"].append(_scenario(result))
+        elif tool == "rules":
+            record["rules_consulted"].update({rule["name"]: rule for rule in result["rules"]})
+            asked += [item for item in result["to_ask"] if item not in asked]
+        elif tool == "rule":
+            record["rules_consulted"][result["name"]] = {key: value for key, value in result.items() if key != "rows"}
+        elif "steps" in result:
+            _information(record, result["steps"], {})
+            _documents(record, result["steps"])
+    # Supplied information is named after the scenario parameter that carries it
+    record["to_ask"] = [item for item in asked if item["name"] not in record["supplied"]]
+    record["rules_consulted"] = {name: rule for name, rule in record["rules_consulted"].items()
+                                 if name not in record["rules"]}
+    return record
+
+
+def _figures(figures: dict) -> str:
+    return ", ".join(f"{name} {value}" for name, value in figures.items())
+
+
+def _branch(branch: dict) -> list[str]:
+    levers = ", ".join(f"{lever} = {value}" for lever, value in branch["levers"].items())
+    lines = [f"- **{levers}**: {branch['status']}" + (f": {_figures(branch['figures'])}" if branch["figures"] else "")]
+    if branch.get("error"):
+        lines.append(f"  - failed: {branch['error']}")
+    lines += [f"  - rejected by {item['decision']}: {item['reason']}" for item in branch.get("rejected_by") or []]
+    lines += [f"  - warning: at {item['estimate']}'s {item['case']} estimate, "
+              f"{item['limit'] or 'the branch'}: {item['reason']}" for item in branch.get("warnings") or []]
+    for item in branch.get("headroom") or []:
+        if item["change"] is None:
+            lines.append(f"  - headroom {item['estimate']}: {item['direction']}: no limit fails within the range")
+        else:
+            lines.append(f"  - headroom {item['estimate']}: {item['direction']} {item['change']:+.1%} "
+                         f"before {item['limit'] or 'the branch fails'}")
+    lines += [f"  - needs approval from {item['who']} ({item['decision']}): {item['reason']}"
+              for item in branch.get("approvals") or []]
+    return lines
+
+
+def _derived(source: dict | None, status: str | None) -> str:
+    """Where a derived rule or fact came from, and its status: "hb-leave (2), approved"."""
+    source = source or {}
+    return f"{source.get('document')} {' '.join(source.get('passages') or [])}, {status}"
+
+
+def _rule(rule: dict) -> str:
+    origin = f" (derived from {_derived(rule.get('source'), rule.get('status'))})" \
+        if rule.get("origin") == "derived" else ""
+    return (f"- **{rule['name']}**{origin} (owner {rule['owner']}, version {rule['version']}): {rule['statement']} "
+            f"Why: {rule['reason']}")
+
+
+def _citations(record: dict, citations: dict) -> list[str]:
+    """The answer's citations with the stored passages they match, those no tool returned and those not checked."""
+    out = []
+    if citations["found"]:
+        out += ["## Citations", ""]
+        for written in citations["found"]:
+            stored = [item for item in record["documents"]
+                      if citation_check.matches(written, item["citation"], item["passage"])]
+            out += [f"- {written}: {item['citation']} {item['passage']}, {item['collection']} built "
+                    f"{item['built_at']}: \"{item['text']}\"" for item in stored] or [
+                f"- {written}: returned by a rule or decision, or given in the question; no passage was read"]
+        out.append("")
+    if citations["not_found"]:
+        out += ["## Citations no tool returned", "", ", ".join(citations["not_found"]), ""]
+    if citations["unchecked"]:
+        out += ["## Citations not checked (a case name without its citation)", "",
+                ", ".join(citations["unchecked"]), ""]
+    return out
+
+
+def markdown(record: dict, answer: str, unsupported: list[str],  # pylint: disable=too-many-branches
+             citations: dict | None = None) -> str:
+    """The record as a page to read: the checked record first, then the agent's explanation, marked as such, and
+    what the checks of its figures and citations found."""
+    out = ["# Decision record", "", "## Question", "", record["question"], "", "## Supplied by the asker", ""]
+    out += [f"- {name}: {', '.join(map(str, values))}" for name, values in record["supplied"].items()] or ["Nothing."]
+    if record["chosen_by_agent"]:
+        out += ["", "## Chosen by the agent, not in the question", ""]
+        out += [f"- {name}: {', '.join(map(str, values))}" for name, values in record["chosen_by_agent"].items()]
+    out += ["", "## Rules applied", ""]
+    out += [_rule(rule) for rule in record["rules"].values()] or ["No rule was applied: no scenario ran."]
+    if record["rules_consulted"]:
+        out += ["", "## Rules consulted", ""] + [_rule(rule) for rule in record["rules_consulted"].values()]
+    out += ["", "## Information", ""]
+    for item in record["information"]:
+        inputs = json.dumps(item["inputs"])
+        if item["kind"] == "estimate":
+            for row in item["rows"]:
+                out.append(f"- {item['query']} {inputs} (estimate): {row['central']}, range {row['low']} to "
+                           f"{row['high']}; {row['source']}, {row['as_of']}")
+        else:
+            out.append(f"- {item['query']} {inputs} (fact): {item['description']}")
+            out += [f"  - {name} derived from {_derived(source, source.get('status'))}"
+                    for name, source in item.get("sources", {}).items()]
+            out += [f"  - {json.dumps(row)}" for row in item["rows"]]
+    out += ["", "## Scenarios", ""]
+    for scenario in record["scenarios"]:
+        given = ", ".join(f"{name} = {value}" for name, value in scenario["supplied"].items())
+        out.append(f"**{scenario['scenario']}**{f' ({given})' if given else ''}, by {scenario['objective']} "
+                   f"({'highest' if scenario['maximise'] else 'lowest'} first); best: {scenario['best']}")
+        for branch in scenario["branches"]:
+            out += _branch(branch)
+        out.append("")
+    if not record["scenarios"]:
+        out += ["No scenario was run.", ""]
+    if record["to_ask"]:
+        out += ["## Still to ask", ""] + [f"- {item['name']}: {item['description']}" for item in record["to_ask"]]
+        out.append("")
+    if record["failed_calls"]:
+        out += ["## Calls that failed", ""] + [f"- {item['tool']}: {item['error']}" for item in record["failed_calls"]]
+        out.append("")
+    out += ["## The agent's explanation (not checked)", "", answer or "(no answer)", ""]
+    if unsupported:
+        out += ["## Figures no tool returned", "", ", ".join(unsupported), ""]
+    if citations:
+        out += _citations(record, citations)
+    return "\n".join(out)

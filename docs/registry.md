@@ -6,10 +6,10 @@ framework.
 
 ## The entry
 
-`clm-registry` writes a deployment's `server.json`, the format registries take:
+`decision-registry` writes a deployment's `server.json`, the format registries take:
 
 ```bash
-uv run clm-registry examples/tariff/environment.toml --name io.github.you/tariff \
+uv run decision-registry examples/tariff/environment.toml --name io.github.you/tariff \
     --url https://decisions.example.org/mcp --version 0.1.0 [--auth key|oauth] \
     [--description "..."] [--repository https://github.com/you/repo]
 ```
@@ -21,7 +21,7 @@ install a deployment.
 |---|---|
 | File | The scenario or `environment.toml` served; it is read and checked even with `--description`, so a mistyped path is refused |
 | `--name` | `namespace/name`, such as `io.github.you/tariff` |
-| `--url` | HTTPS, a host name and a path ending in `/mcp`. An internal name (`decisions.corp.internal`) is fine, as is a path before `/mcp` (`https://gateway.corp/tools/decisions/mcp`, behind a gateway). `localhost` and `127.0.0.1` are refused by the registry, and every other bare IP address by `clm-registry`, since an entry names a host other computers can find. A user, password, query or fragment is refused too: an entry is published as written and never fully removed, and the key belongs in the header |
+| `--url` | HTTPS, a host name and a path ending in `/mcp`. An internal name (`decisions.corp.internal`) is fine, as is a path before `/mcp` (`https://gateway.corp/tools/decisions/mcp`, behind a gateway). `localhost` and `127.0.0.1` are refused by the registry, and every other bare IP address by `decision-registry`, since an entry names a host other computers can find. A user, password, query or fragment is refused too: an entry is published as written and never fully removed, and the key belongs in the header |
 | `--version` | Such as `1.0.0` |
 | `--auth key` (default) | Says a client must send a secret `Authorization` header; the key itself is never in the entry |
 | `--auth oauth` | Names no header; the client learns which issuer to ask from the server's protected resource metadata ([serving.md](serving.md#with-tokens-from-your-identity-provider-oauth)) |
@@ -78,17 +78,17 @@ This was checked on a Mac with the registry's release 1.8.6 and PostgreSQL 18 fr
 4. Write and publish the entry:
 
    ```bash
-   uv run clm-registry examples/tariff/environment.toml \
-       --name io.modelcontextprotocol.anonymous/clm-tariff \
+   uv run decision-registry examples/tariff/environment.toml \
+       --name io.modelcontextprotocol.anonymous/decision-tariff \
        --url https://decisions.corp.internal/mcp --version 0.1.0 \
        --description "Sourcing decisions over a supplier graph, DMN rules and what-if scenarios"
    mcp-publisher login none --registry http://localhost:8090
    mcp-publisher publish server.json
    ```
 
-5. Find it: `curl "http://localhost:8090/v0.1/servers?search=clm-tariff"` gives the entry, with its address and the
+5. Find it: `curl "http://localhost:8090/v0.1/servers?search=decision-tariff"` gives the entry, with its address and the
    header it needs. The MCP Inspector lists the server's tools with that header
    (`--cli <address> --transport http --header "Authorization: Bearer <the key>" --method tools/list`;
-   [serving](serving.md#inspecting-a-server)); with the key in `DECISION_SERVER_KEY`, `clm-agent <address> "QUESTION"`
-   asks a model to use them. The internal host name does not resolve on a laptop, so in the check the client was
-   pointed at the local server for that name.
+   [serving](serving.md#inspecting-a-server)); with the key in `DECISION_SERVER_KEY`, `decision-agent <address>
+   "QUESTION"` asks a model to use them. The internal host name does not resolve on a laptop, so in the check the client
+   was pointed at the local server for that name.

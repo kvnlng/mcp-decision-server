@@ -34,7 +34,7 @@ Each is asked by one made-up employee, who names the company, their id and the d
 
 | Setup | Environment | What the agent has |
 |---|---|---|
-| No tools | `clm-agent --no-tools` | The question and a short prompt: answer, and say so when you do not know. It stands for a general chatbot |
+| No tools | `decision-agent --no-tools` | The question and a short prompt: answer, and say so when you do not know. It stands for a general chatbot |
 | Rules only | `environment_without_documents.toml` | The scenarios give the right figures and name the handbook sections the rules cite, not their text; no tool searches or reads the handbook. Each rule's statement and reason restate its policy, figures included |
 | Rules and handbook | `environment.toml` | The rules' citations carry the sections' text; the agent can search and read the whole handbook |
 | Handbook only | `environment_documents_only.toml` | The employees' records, the calculations and the handbook; no rules or plan figures. The agent reads every rule and figure and passes them to the calculations itself. The strongest fair competitor to derived rules |
@@ -51,23 +51,23 @@ set -a; . ./.postgres-local.env; set +a
 ```
 
 ```bash
-uv run clm-load-documents examples/handbook/environment.toml handbook examples/handbook/handbook.jsonl \
+uv run decision-load-documents examples/handbook/environment.toml handbook examples/handbook/handbook.jsonl \
     --source "Meridian handbook (made up)"
 ```
 
 ```bash
-uv run clm-agent examples/handbook/environment.toml "I work at Meridian Logistics; I'm employee e_2001, and \
+uv run decision-agent examples/handbook/environment.toml "I work at Meridian Logistics; I'm employee e_2001, and \
 today is 1 December 2026. What is the company match on my 401(k), and what is the maximum?"
 ```
 
 ## Deriving the rules
 
 ```bash
-uv run clm-derive run examples/handbook/environment_derived.toml handbook --backend claude --as-of 2026-12-01
+uv run decision-derive run examples/handbook/environment_derived.toml handbook --backend claude --as-of 2026-12-01
 ```
 
 ```bash
-uv run clm-derive status examples/handbook/environment_derived.toml decisions carryover_limit approved --by NAME
+uv run decision-derive status examples/handbook/environment_derived.toml decisions carryover_limit approved --by NAME
 ```
 
 `run` gives the model the documents in force on the date (never the 2024 edition), renders the table it describes

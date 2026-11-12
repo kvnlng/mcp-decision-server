@@ -11,14 +11,14 @@ from conftest import BASE_TOML, FakeRouter, decision, free_port, serving
 from mcp import Client
 from mcp.client.streamable_http import streamable_http_client
 
-from clm_decision import clm_router
-from clm_decision import server
-from clm_decision import tracing
-from clm_decision.decision import decide, routed_text
-from clm_decision.record import append_record, load_records, new_key
-from clm_decision.scenario import ScenarioError, load_scenario
-from clm_decision.serving import Serve
-from clm_decision.tools import load_tools
+from mcp_decision_server import clm_router
+from mcp_decision_server import server
+from mcp_decision_server import tracing
+from mcp_decision_server.decision import decide, routed_text
+from mcp_decision_server.record import append_record, load_records, new_key
+from mcp_decision_server.scenario import ScenarioError, load_scenario
+from mcp_decision_server.serving import Serve
+from mcp_decision_server.tools import load_tools
 
 TEXT = "my app crashes"
 
@@ -625,11 +625,11 @@ PORTAL_KEY = "a-portal-key-of-enough-length"
 @pytest.fixture
 def portal_started(monkeypatch):
     """What serve_both was given, in place of serving it."""
-    from clm_decision.portal import live  # pylint: disable=import-outside-toplevel
+    from mcp_decision_server.portal import live  # pylint: disable=import-outside-toplevel
     started: list[tuple] = []
     monkeypatch.setattr(live, "serve_both", lambda *args: started.append(args))
     monkeypatch.setenv("DECISION_SERVER_KEY", "the-agents-key")
-    monkeypatch.setenv("CLM_PORTAL_KEY", PORTAL_KEY)
+    monkeypatch.setenv("DECISION_PORTAL_KEY", PORTAL_KEY)
     return started
 
 
@@ -649,14 +649,14 @@ def test_portal_needs_http(write_environment, portal_started, capsys):
 
 def test_portal_needs_key(write_environment, portal_started, monkeypatch, capsys):
     argv = [str(write_environment()), "--http", "--portal", "8400"]
-    monkeypatch.delenv("CLM_PORTAL_KEY")
+    monkeypatch.delenv("DECISION_PORTAL_KEY")
     assert server.main(argv) == 2
-    assert "set CLM_PORTAL_KEY" in capsys.readouterr().err and not portal_started
-    monkeypatch.setenv("CLM_PORTAL_KEY", "x" * 15)
+    assert "set DECISION_PORTAL_KEY" in capsys.readouterr().err and not portal_started
+    monkeypatch.setenv("DECISION_PORTAL_KEY", "x" * 15)
     assert server.main(argv) == 2
     err = capsys.readouterr().err
     assert "at least 16 characters" in err and "x" * 15 not in err and len(err.strip().splitlines()) == 1
-    monkeypatch.setenv("CLM_PORTAL_KEY", "x" * 16)
+    monkeypatch.setenv("DECISION_PORTAL_KEY", "x" * 16)
     assert server.main(argv) == 0 and portal_started
 
 

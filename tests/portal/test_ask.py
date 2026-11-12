@@ -7,7 +7,7 @@ import anyio
 import httpx
 import pytest
 
-from clm_decision.portal import chat, web
+from mcp_decision_server.portal import chat, web
 from .conftest import KEY, ORIGIN, csrf_of, post, sign_in
 from .test_chat import reply, scripted
 

@@ -21,8 +21,8 @@ from pathlib import Path
 
 from messages import BUCKETS, POOL_PATH, fits  # noqa: E402  # pylint: disable=wrong-import-order
 
-from clm_decision.generator import MLXGenerator  # noqa: E402
-from clm_decision.synthesize import parse_messages  # noqa: E402
+from mcp_decision_server.generator import MLXGenerator  # noqa: E402
+from mcp_decision_server.synthesize import parse_messages  # noqa: E402
 
 MODEL = "mlx-community/Qwen3-4B-Instruct-2507-4bit"
 TEMPERATURE = 0.8            # sampled rather than greedy: greedy output repeats the prompt's own words

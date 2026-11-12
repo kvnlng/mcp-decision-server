@@ -1,7 +1,7 @@
 # What the traces showed
 
-The CrowdStrike example is also the benchmark: runs were traced (`clm-server --trace`) before and after each change.
-The numbers are in the [example's README](../examples/crowdstrike/README.md) and [serving.md](serving.md).
+The CrowdStrike example is also the benchmark: runs were traced (`decision-server --trace`) before and after each
+change. The numbers are in the [example's README](../examples/crowdstrike/README.md) and [serving.md](serving.md).
 
 ## Where the time goes
 
@@ -53,7 +53,7 @@ The H100 decided the whole day at 50.1 a second.
 
 | Finding | Figures |
 |---|---|
-| Many bookings go to a person | Threshold 0.6: 5% of the day's bookings got a wrong route not marked uncertain; 46% were marked uncertain, most answered rightly. `clm-evaluate --cases` puts the lowest threshold keeping the routes 90% right at 0.63: better-trained heads are the fix, not a lower threshold |
+| Many bookings go to a person | Threshold 0.6: 5% of the day's bookings got a wrong route not marked uncertain; 46% were marked uncertain, most answered rightly. `decision-evaluate --cases` puts the lowest threshold keeping the routes 90% right at 0.63: better-trained heads are the fix, not a lower threshold |
 | Claude was more accurate, and on the Mac faster | 600 unseen cases: Sonnet 5.5 82% of routes right, Haiku 5.5 79%, CLM 75%; Sonnet took 267 ms a decision, CLM 300 ms. CLM costs nothing per decision, keeps the messages on the machine and marks most of its wrong answers uncertain |
 | `check_call` is weak as a yes or no | A rebooking and a refund for the same passenger: it approved the right one and refused the wrong one for 114 of 200; compared with each other, 169 were told apart. `decide` was right for 162 and marks most of its mistakes uncertain |
 
@@ -69,5 +69,5 @@ From the local-document examples ([examples/noncompete](../examples/noncompete/R
 | Small results suit a local model | Handbook questions: gemma4 about as fast as Claude (13 to 17 s) and as accurate with the rules only (16 of 17 each); with the handbook 14 of 17 against Claude's 17 |
 | Rules Claude derived from the handbook matched the hand-written ones | Claude's five tables and six plan figures, all 11, matched the hand-written ones over a grid of every bound; all 11 passed the first check (3 on the second try). Answering from them, Claude gave 17 of 17 key figures, as with the hand-written rules; gemma4 14 of 17, none wrong. A stricter check (a range's upper bound, whole words in quotes, figures in a rule's reason; dates, bare years and section references exempt) still passes all 11 |
 | Fully local derivation let wrong figures through the check | gemma4 derived 9 of 11 that pass the stricter check (10 of 11 the first), but two are wrong: it read "100% of the first 3% ... 50% of the next 3%" as tiers of 100% and 50% of pay. Every figure is in the quote, so the check cannot tell a rate from a width: it catches figures not in the document, not figures in the wrong place, which is the person's part. The scripted approval passed them; gemma4 answering from its own layer stated two wrong figures as fact (a $3,680 match where the key says $3,220). gemma4 also needed thinking off: with thinking on, under a JSON schema, it ran past 100,000 tokens without answering |
-| A second reading caught the misplaced figures when Claude read, only partly when a local model did | `clm-derive check` can have a second model derive each entry again without the first answer; a disagreement fails the check. On gemma4's layer, Claude caught both wrong tiers and flagged none of the 9 right entries; granite4:micro caught both but flagged 5 right entries (it read the rates as 3); qwen3:14b caught one and agreed with the other, making gemma4's own mistake, so a wrong figure passed both checks. gemma4 reading Claude's all-right layer raised 3 false alarms of 11. Agreement is not proof; every entry still needs a person. One run each ([a second reading](../examples/handbook/README.md#a-second-reading)) |
+| A second reading caught the misplaced figures when Claude read, only partly when a local model did | `decision-derive check` can have a second model derive each entry again without the first answer; a disagreement fails the check. On gemma4's layer, Claude caught both wrong tiers and flagged none of the 9 right entries; granite4:micro caught both but flagged 5 right entries (it read the rates as 3); qwen3:14b caught one and agreed with the other, making gemma4's own mistake, so a wrong figure passed both checks. gemma4 reading Claude's all-right layer raised 3 false alarms of 11. Agreement is not proof; every entry still needs a person. One run each ([a second reading](../examples/handbook/README.md#a-second-reading)) |
 | The handbook alone, with the calculations, was nearly enough for Claude and not for gemma4 | No rules: Claude gave 16 of 17 and recognised the superseded 2024 edition as replaced; gemma4 10 of 17 and one wrong figure, passing the match's rates to the calculation wrongly |

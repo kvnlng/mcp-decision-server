@@ -1,9 +1,9 @@
 """Fetch the non-compete opinions of the example's states, and the opinions that cite them, as JSON lines for
-clm-load-documents.
+decision-load-documents.
 
     uv run python examples/noncompete/fetch_cases.py fetch     # download and keep candidates (about 11 GB read)
     uv run python examples/noncompete/fetch_cases.py build     # choose the opinions, read their facts, write
-    uv run clm-load-documents examples/noncompete/environment.toml cases examples/noncompete/data/cases.jsonl
+    uv run decision-load-documents examples/noncompete/environment.toml cases examples/noncompete/data/cases.jsonl
 
 The opinions come from the Caselaw Access Project (Harvard Law School Library), whose bulk data is free of
 restrictions: https://static.case.law. It holds published opinions to about 2020. `fetch` reads one volume at a
@@ -25,7 +25,7 @@ from pathlib import Path
 
 import httpx
 
-from clm_decision.load_documents import split
+from mcp_decision_server.load_documents import split
 
 HERE = Path(__file__).parent
 DATA = HERE / "data"

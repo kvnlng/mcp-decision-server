@@ -1,5 +1,5 @@
 [project]
-name = "clm-decision-agent"
+name = "mcp-decision-server"
 version = "0.1.0"
 description = "A framework for decision servers: checkable decisions offered to agents over MCP"
 requires-python = ">=3.12,<3.15"          # torch has no wheels for 3.15 yet
@@ -37,24 +37,24 @@ documents = ["psycopg[binary]>=3.2,<4", "pgvector>=0.3,<1"]
 agent = ["anthropic>=2.1.0,<3"]
 
 [project.scripts]
-clm-server = "clm_decision.server:main"
-clm-agent = "clm_decision.decision_agent:main"
-clm-new-scenario = "clm_decision.new_scenario:main"
-clm-new-environment = "clm_decision.new_environment:main"
-clm-train = "clm_decision.train:main"
-clm-evaluate = "clm_decision.evaluate:main"
-clm-synthesize = "clm_decision.synthesize:main"
-clm-record = "clm_decision.record:main"
-clm-load-graph = "clm_decision.load_graph:main"
-clm-load-documents = "clm_decision.load_documents:main"
-clm-registry = "clm_decision.registry:main"
-clm-trace-report = "clm_decision.trace_report:main"
-clm-derive = "clm_decision.derive:main"
+decision-server = "mcp_decision_server.server:main"
+decision-agent = "mcp_decision_server.decision_agent:main"
+decision-new-scenario = "mcp_decision_server.new_scenario:main"
+decision-new-environment = "mcp_decision_server.new_environment:main"
+decision-train = "mcp_decision_server.train:main"
+decision-evaluate = "mcp_decision_server.evaluate:main"
+decision-synthesize = "mcp_decision_server.synthesize:main"
+decision-record = "mcp_decision_server.record:main"
+decision-load-graph = "mcp_decision_server.load_graph:main"
+decision-load-documents = "mcp_decision_server.load_documents:main"
+decision-registry = "mcp_decision_server.registry:main"
+decision-trace-report = "mcp_decision_server.trace_report:main"
+decision-derive = "mcp_decision_server.derive:main"
 
 [dependency-groups]
 # A checkout gets every extra, so `uv sync` and the tests have everything
 dev = [
-    "clm-decision-agent[clm,neo4j,documents,agent]",
+    "mcp-decision-server[clm,neo4j,documents,agent]",
     "pylint>=4.1.2",
     "pytest>=8",
 ]
@@ -64,12 +64,12 @@ requires = ["uv_build>=0.11,<0.12"]
 build-backend = "uv_build"
 
 [tool.uv.build-backend]
-module-name = "clm_decision"
+module-name = "mcp_decision_server"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 markers = ["slow: loads real models",
-           "postgres: needs a local PostgreSQL with pgvector (CLM_TEST_POSTGRES_PASSWORD set)"]
+           "postgres: needs a local PostgreSQL with pgvector (DECISION_TEST_POSTGRES_PASSWORD set)"]
 addopts = "-m 'not slow and not postgres'"
 
 [tool.pylint.main]

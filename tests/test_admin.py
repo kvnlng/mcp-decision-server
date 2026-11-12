@@ -12,13 +12,13 @@ from mcp.server.subscriptions import ToolsListChanged
 from mcp.shared.exceptions import MCPError
 from mcp.types import INVALID_PARAMS
 
-from clm_decision import server as server_module
-from clm_decision import tracing
-from clm_decision.admin import Admin
-from clm_decision.environment import load_environment
-from clm_decision.environment_server import build_environment_server, reload
-from clm_decision.scenario import ScenarioError
-from clm_decision.serving import Serve
+from mcp_decision_server import server as server_module
+from mcp_decision_server import tracing
+from mcp_decision_server.admin import Admin
+from mcp_decision_server.environment import load_environment
+from mcp_decision_server.environment_server import build_environment_server, reload
+from mcp_decision_server.scenario import ScenarioError
+from mcp_decision_server.serving import Serve
 
 NO_SCENARIO = ENV_TOML.split("[scenarios.sourcing]", maxsplit=1)[0]
 

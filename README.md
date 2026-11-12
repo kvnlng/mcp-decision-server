@@ -1,4 +1,6 @@
-# CLM decision server
+# MCP decision server
+
+An MCP server framework that gives agents trustworthy decisions from your own rules and data.
 
 **A framework, not a finished product.** You write the tools an AI agent uses to reach the resources where your
 information already lives (databases, knowledge graphs, rule tables, issue trackers, public data) and the rules
@@ -11,7 +13,7 @@ times a day (which team handles a request) or once (whether to change supplier o
 whether Claude, a local model or one built on Databricks, talks to the person; your tools supply the information;
 the decision comes back with its reasons.
 
-<p align="center"><img src="docs/images/architecture.svg" alt="C4 container diagram. An MCP agent calls the MCP server; the administrator uses the portal, which reaches the server in process through a control layer. The server scores options with CLM, reads the environment (rules, queries, your tools), searches the document store and acts on your systems through your tools. clm-derive derives rules from the documents into the environment." width="820"></p>
+<p align="center"><img src="docs/images/architecture.svg" alt="C4 container diagram. An MCP agent calls the MCP server; the administrator uses the portal, which reaches the server in process through a control layer. The server scores options with CLM, reads the environment (rules, queries, your tools), searches the document store and acts on your systems through your tools. decision-derive derives rules from the documents into the environment." width="820"></p>
 
 Three principles:
 
@@ -66,10 +68,10 @@ These are small tests, said plainly in [docs/findings.md](docs/findings.md):
 
 | Path | Holds |
 |---|---|
-| `src/clm_decision/` | The framework and the `clm-*` commands |
+| `src/mcp_decision_server/` | The framework and the `clm-*` commands |
 | `examples/` | Six worked examples ([the list](examples/README.md)) |
 | `docs/` | The guides, starting with [getting started](docs/getting-started.md) |
-| `src/clm_decision/portal/` | [The portal](docs/portal.md): a page `clm-server` serves for administering a server, with a chat (Ask) |
+| `src/mcp_decision_server/portal/` | [The portal](docs/portal.md): a page `decision-server` serves for administering a server, with a chat (Ask) |
 | `tests/` | `uv run pytest`; `uv run pytest -m slow` also loads CLM (`CLM_TEST_BACKEND=torch` for torch) |
 
 ## Licence

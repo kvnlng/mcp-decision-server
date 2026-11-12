@@ -11,8 +11,8 @@ import fake_tools
 import pytest
 from conftest import BASE_TOML
 
-from clm_decision.scenario import ScenarioError, load_scenario
-from clm_decision.tools import check_tools, load_tools
+from mcp_decision_server.scenario import ScenarioError, load_scenario
+from mcp_decision_server.tools import check_tools, load_tools
 
 
 def test_load_tools_by_name(write_scenario):
@@ -113,7 +113,8 @@ def test_a_tools_module_named_after_a_standard_module_not_yet_imported_leaves_th
     (tmp_path / "scenario.toml").write_text(BASE_TOML.replace('"fake_tools"', '"statistics"'))
     # A fresh process, so the standard statistics is not yet imported when the scenario's module loads
     program = ("import sys\nassert 'statistics' not in sys.modules\n"
-               "from clm_decision.scenario import load_scenario\nfrom clm_decision.tools import load_tools\n"
+               "from mcp_decision_server.scenario import load_scenario\n"
+               "from mcp_decision_server.tools import load_tools\n"
                f"tools = load_tools(load_scenario({str(tmp_path / 'scenario.toml')!r}))\n"
                "import statistics\nprint(list(tools), statistics.mean([1, 3]))\n")
     done = subprocess.run([sys.executable, "-c", program], capture_output=True, text=True, check=False)

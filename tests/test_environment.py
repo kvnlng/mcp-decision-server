@@ -7,8 +7,8 @@ import pytest
 from conftest import BASE_TOML, ENV_TOML, JUDGE_TOML, limit_dmn
 from fake_documents import FakeEmbedder, FakeStore
 
-from clm_decision.environment import _connector, _graph_settings, is_environment, load_environment
-from clm_decision.scenario import ScenarioError
+from mcp_decision_server.environment import _connector, _graph_settings, is_environment, load_environment
+from mcp_decision_server.scenario import ScenarioError
 
 
 def test_loads_the_parts(write_environment):
@@ -124,7 +124,7 @@ def test_reuse_connects_again_when_documents_change(write_environment, monkeypat
                                                              'backend = "postgres"\ndatabase = "other"'),
                     encoding="utf-8")
     fresh = ClosableStore()
-    monkeypatch.setattr("clm_decision.environment.docs.connect", lambda settings: fresh)
+    monkeypatch.setattr("mcp_decision_server.environment.docs.connect", lambda settings: fresh)
     assert load_environment(path, reuse=old).store is fresh
 
 
@@ -183,7 +183,7 @@ class FakeConnection:
 
 
 def test_a_closed_postgres_store_stays_closed():
-    from clm_decision.documents_pg import PostgresStore  # pylint: disable=import-outside-toplevel
+    from mcp_decision_server.documents_pg import PostgresStore  # pylint: disable=import-outside-toplevel
     opened = []
     store = PostgresStore(FakeConnection(), "here", reconnect=lambda: opened.append(1) or FakeConnection())
     first = store.connection
@@ -194,11 +194,11 @@ def test_a_closed_postgres_store_stays_closed():
 
 def test_a_load_that_fails_closes_the_store_it_connected(write_environment, monkeypatch):
     fresh = ClosableStore()
-    monkeypatch.setattr("clm_decision.environment.docs.connect", lambda settings: fresh)
+    monkeypatch.setattr("mcp_decision_server.environment.docs.connect", lambda settings: fresh)
 
     def fail(*args):
         raise ScenarioError("derived: broken")
-    monkeypatch.setattr("clm_decision.environment._fill", fail)
+    monkeypatch.setattr("mcp_decision_server.environment._fill", fail)
     with pytest.raises(ScenarioError, match="derived: broken"):
         load_environment(write_environment(WITH_DOCUMENTS))
     assert fresh.closed == 1
@@ -210,7 +210,7 @@ def test_a_load_that_fails_leaves_a_shared_store_open(write_environment, monkeyp
 
     def fail(*args):
         raise ScenarioError("derived: broken")
-    monkeypatch.setattr("clm_decision.environment._fill", fail)
+    monkeypatch.setattr("mcp_decision_server.environment._fill", fail)
     with pytest.raises(ScenarioError):
         load_environment(path, reuse=old)
     assert old.store.closed == 0
@@ -218,7 +218,8 @@ def test_a_load_that_fails_leaves_a_shared_store_open(write_environment, monkeyp
 
 def test_a_bad_second_reader_is_refused_before_a_store_is_connected(write_environment, monkeypatch):
     connected = []
-    monkeypatch.setattr("clm_decision.environment.docs.connect", lambda settings: connected.append(ClosableStore()))
+    monkeypatch.setattr("mcp_decision_server.environment.docs.connect",
+                        lambda settings: connected.append(ClosableStore()))
     with pytest.raises(ScenarioError, match="^derived.second_reader: must be a table"):
         load_environment(write_environment(WITH_DOCUMENTS + '\n[derived]\nsecond_reader = "nope"\n'))
     assert not connected
