@@ -134,7 +134,8 @@ The loop:
    at least two per route, in the words real senders use. `context` and `answers` are needed only when the scenario
    has tools or questions.
 3. **Measure the start:** `uv run clm-evaluate FOLDER/scenario.toml --cases FOLDER/scenario.cases.jsonl`. It prints
-   the score per route, how many wrong routes were marked uncertain, and a suggested `confidence_threshold`.
+   the score per route, how many wrong routes were marked uncertain, each case that got the wrong route (its line,
+   the route it got and its text), and a suggested `confidence_threshold`.
 4. **Write training examples:** `uv run clm-synthesize FOLDER/scenario.toml`, 64 per route. Read some from each
    route. If the generator filed messages under the wrong route, reword the descriptions, move
    `scenario.examples.jsonl` aside (it refuses to overwrite it) and synthesize again.
@@ -142,7 +143,7 @@ The loop:
    scores on examples it held back from training.
 6. **Measure again** with the same `clm-evaluate` command, and report both scores plainly.
 
-`clm-evaluate` gives totals only. To see which cases went wrong, call `decide` on each through the Inspector:
+To see a whole decision for one message, call `decide` through the Inspector:
 `--method tools/call --tool-name decide --tool-arg text="..."` on `FOLDER/scenario.toml`. If a route still scores
 badly, rewrite its description and examples, or widen `[synthesize] messages`, before training more. Changing a
 route's name or description, or the routing question, means synthesizing and training again.

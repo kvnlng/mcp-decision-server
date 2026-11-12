@@ -202,7 +202,7 @@ def test_main_scores_a_cases_file_through_the_tools_without_actions(write_scenar
     import fake_tools  # pylint: disable=import-outside-toplevel
     cases = tmp_path / "check.cases.jsonl"
     cases.write_text(json.dumps({"text": "charged twice", "context": {"user": 1}, "route": "Billing",
-                                 "answers": {"urgent": True}}) + "\n"
+                                 "answers": {"urgent": True}}) + "\n\n"     # a blank line between cases
                      + json.dumps({"text": "app crashed", "route": "Tech"}) + "\n")
     router = FakeRouter({"route": "Billing", "confidence": 0.9, "probabilities": {"Billing": 0.9, "Tech": 0.1},
                          "answers": {"urgent": {"type": "noul", "noul": 0.8}}, "source": "clm"},
@@ -214,6 +214,7 @@ def test_main_scores_a_cases_file_through_the_tools_without_actions(write_scenar
     out = capsys.readouterr().out
     assert "Route: 1 of 2 (50%): Billing 1 of 1, Tech 0 of 1" in out
     assert "urgent: 1 of 1" in out
+    assert 'Wrong routes:\n  line 3: Tech, got Billing (confidence 0.90): "app crashed"' in out   # the file's line
     assert [name for name, _ in fake_tools.CALLS] == ["lookup", "lookup"]   # informed, and no action ran
 
 
@@ -231,3 +232,28 @@ def test_bad_cases_are_one_line_before_clm_loads(write_scenario, tmp_path, monke
     monkeypatch.setattr(clm_router, "make_router", lambda scenario: pytest.fail("CLM loaded"))
     assert main([str(write_scenario()), "--cases", str(cases)]) == 2
     assert message in capsys.readouterr().err
+
+
+def test_cases_report_lists_each_wrong_route_with_its_line_and_text():
+    cases = [{"text": "Please cancel my booking of the boardroom on Friday", "route": "Booking"},
+             {"text": "The screen is flickering", "route": "Fault"},
+             {"text": "hey, have you got a sec?", "route": "Other"}]
+    replies = [{"route": "Other", "uncertain": True, "confidence": 0.42, "answers": {}},
+               {"route": "Fault", "uncertain": False, "confidence": 0.87, "answers": {}},
+               {"route": "Fault", "uncertain": False, "confidence": 0.71, "answers": {}}]
+    found = score_cases(cases, replies)
+    assert found["wrong"] == [
+        {"line": 1, "text": "Please cancel my booking of the boardroom on Friday", "expected": "Booking",
+         "got": "Other", "confidence": 0.42, "uncertain": True},
+        {"line": 3, "text": "hey, have you got a sec?", "expected": "Other", "got": "Fault", "confidence": 0.71,
+         "uncertain": False}]
+    report = format_cases_report(found)
+    assert ('  line 1: Booking, got Other (confidence 0.42, uncertain): '
+            '"Please cancel my booking of the boardroom on Friday"') in report
+    assert '  line 3: Other, got Fault (confidence 0.71): "hey, have you got a sec?"' in report
+    assert "flickering" not in report
+
+
+def test_cases_report_lists_no_wrong_routes_when_all_are_right():
+    found = score_cases([{"text": "hi", "route": "Billing"}], [{"route": "Billing", "uncertain": False, "answers": {}}])
+    assert found["wrong"] == [] and "Wrong routes:" not in format_cases_report(found)

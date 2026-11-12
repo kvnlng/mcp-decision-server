@@ -439,7 +439,7 @@ the routes you describe. Here you make one for messages the team sends about the
    ```
 
    Keep lines 1 to 14: the `[clm]` block says which CLM to use. On Linux, put `#` before lines 8 and 9 and remove
-   it from lines 11 and 12. Delete everything from line 15, `# Only synthesize.py uses a language model...`, to the
+   it from lines 11 and 12. Delete everything from line 15, `# Only clm-synthesize uses a language model...`, to the
    end (in `vi`, type `:15,$d` and Enter), then add the following and save:
 
    ```toml

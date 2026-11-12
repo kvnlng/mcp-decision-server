@@ -198,10 +198,11 @@ def _value(answer: dict):
 def score_cases(cases: list[dict], replies: list[dict]) -> dict:
     """Per class, (right, of): the route, the option where the route was right, and each question's answers;
     how many wrong routes were marked uncertain, so no action would have run; and the confidence threshold
-    that would make the routes kept 90% right, when the replies carry a confidence."""
-    found: dict = {"route": {}, "option": {}, "answers": {}, "wrong_uncertain": (0, 0)}
+    that would make the routes kept 90% right, when the replies carry a confidence; and each wrong route, with
+    its line in the file (counted from 1 when a case has none), its text and the route it got."""
+    found: dict = {"route": {}, "option": {}, "answers": {}, "wrong_uncertain": (0, 0), "wrong": []}
     pairs = []
-    for case, reply in zip(cases, replies):
+    for index, (case, reply) in enumerate(zip(cases, replies), 1):
         right = reply["route"] == case["route"]
         _count(found["route"], case["route"], right)
         if "confidence" in reply:
@@ -209,6 +210,9 @@ def score_cases(cases: list[dict], replies: list[dict]) -> dict:
         if not right:
             uncertain, wrong = found["wrong_uncertain"]
             found["wrong_uncertain"] = (uncertain + bool(reply["uncertain"]), wrong + 1)
+            found["wrong"].append({"line": case.get("line", index), "text": case.get("text", ""),
+                                   "expected": case["route"], "got": reply["route"],
+                                   "confidence": reply.get("confidence"), "uncertain": bool(reply["uncertain"])})
         elif case.get("option") is not None:
             _count(found["option"], case["route"], (reply.get("option") or {}).get("id") == case["option"])
         for name, expected in case.get("answers", {}).items():
@@ -226,6 +230,15 @@ def _line(table: dict) -> str:
     return f"{hits} of {total} ({hits / total:.0%}): {parts}" if total else "none"
 
 
+def _wrong_line(wrong: dict) -> str:
+    """One wrong route: the case's line, the route it should have had and the one it got, and its text."""
+    notes = ([f"confidence {wrong['confidence']:.2f}"] if wrong.get("confidence") is not None else []) \
+        + (["uncertain"] if wrong["uncertain"] else [])
+    detail = f" ({', '.join(notes)})" if notes else ""
+    text = json.dumps(wrong["text"], ensure_ascii=False)
+    return f"  line {wrong['line']}: {wrong['expected']}, got {wrong['got']}{detail}: {text}"
+
+
 def format_cases_report(found: dict) -> str:
     """The scores of a cases file as lines of text."""
     uncertain, wrong = found["wrong_uncertain"]
@@ -237,6 +250,9 @@ def format_cases_report(found: dict) -> str:
         lines.append("Routing accuracy by CLM confidence:")
         lines += [f"  {band['low']:.1f}-{band['high']:.1f}  {band['correct']:>4} / {band['n']:<4} "
                   f"{_share(band['correct'], band['n'])}" for band in found["bands"] if band["n"]]
+    if found.get("wrong"):
+        lines.append("Wrong routes:")
+        lines += [_wrong_line(wrong) for wrong in found["wrong"]]
     if found.get("threshold") is not None:
         lines.append(f"Suggested confidence_threshold: {found['threshold']:.2f} (the lowest at which the routes "
                      f"kept are 90% right)")
@@ -287,7 +303,7 @@ def load_cases(path: Path, scenario) -> list[dict]:
         if case["route"] not in scenario.routes:
             raise ScenarioError(f"{path.name} line {number}: route {case['route']!r} is not one of the scenario's "
                                 f"routes")
-        cases.append(case)
+        cases.append({**case, "line": number})     # so the report can name the case's line
     if not cases:
         raise ScenarioError(f"{path.name} has no cases")
     return cases

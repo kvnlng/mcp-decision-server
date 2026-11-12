@@ -29,7 +29,7 @@ SCENARIO = '''\
 {clm}
 heads = "scenario.heads"            # trained heads, made by clm-train; the released ones are used until then
 
-# Only synthesize.py uses a language model, to write example messages for training
+# Only clm-synthesize uses a language model, to write example messages for training
 [generator]
 {generator}
 max_tokens = 500
