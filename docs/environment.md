@@ -48,7 +48,7 @@ Every table of the file and what it declares: [reference](environment-reference.
 
 `clm-server` serves a file with an `[environment]` table without loading CLM. The MCP Inspector starts it and shows
 its tools, resources and prompts, and calls one, with no agent
-([getting started](getting-started.md#looking-inside-the-server); the commands are in
+([getting started](getting-started.md#2-look-inside-the-server); the commands are in
 [the walkthrough](#from-a-new-folder-to-a-registered-server)).
 
 ```bash

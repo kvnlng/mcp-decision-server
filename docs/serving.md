@@ -67,7 +67,7 @@ What is accepted and refused, and the Keycloak and Entra ID steps:
 ### Inspecting a server
 
 The Inspector's page, and what it shows for each example, is in
-[getting-started.md](getting-started.md#looking-inside-the-server). A server already running over HTTP is reached with
+[getting-started.md](getting-started.md#2-look-inside-the-server). A server already running over HTTP is reached with
 its address and the `Authorization` header: on the page, or from the command line, for a check you can repeat (the
 command line needs Node; `npx` downloads the Inspector). With the handbook server running and its documents in
 PostgreSQL ([examples/handbook](../examples/handbook/README.md)):

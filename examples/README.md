@@ -1,7 +1,7 @@
 # Examples
 
 There are six examples: two scenarios and four environments ([getting
-started](../docs/getting-started.md#your-environment-and-the-decisions-over-it) explains the two kinds). Each README has
+started](../docs/getting-started.md#environment) explains the two kinds). Each README has
 the full story, how to run it and what happened when models were asked.
 
 | Example | What it shows | Data | Needs |
@@ -22,7 +22,7 @@ locally and ignored by git.
 - **A scenario:** service_desk.
 - **An environment:** tariff, then new_site; neither needs training.
   `npx -y @modelcontextprotocol/inspector@2.13.0 uv run clm-server examples/new_site/environment.toml` shows what
-  an agent sees, in the browser ([Looking inside the server](../docs/getting-started.md#looking-inside-the-server)).
+  an agent sees, in the browser ([Look inside the server](../docs/getting-started.md#2-look-inside-the-server)).
 - **Your own:** `uv run clm-new-environment my_environment` writes a working environment to edit: a team choosing
   where to hold an offsite. [docs/environment.md](../docs/environment.md) walks from a new folder to a registered
   server; [docs/walkthrough.md](../docs/walkthrough.md) builds a scenario step by step, with crowdstrike as the

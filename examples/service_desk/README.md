@@ -17,7 +17,7 @@ npx -y @modelcontextprotocol/inspector@2.13.0 \
     uv run clm-server examples/service_desk/scenario.toml --review        # terminal 2: the MCP Inspector
 ```
 
-In the Inspector ([getting started](../../docs/getting-started.md#looking-inside-the-server)), connect and call
+In the Inspector ([getting started](../../docs/getting-started.md#2-look-inside-the-server)), connect and call
 `decide` with each `text`:
 
 - `I need access to the oncology registry for an audit, needed this week`: a ticket, `priority-high`,
