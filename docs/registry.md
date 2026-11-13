@@ -5,6 +5,12 @@ with its own scenario or environment, address and key, is a server of its own, s
 framework. The steps follow the registry's [quickstart](https://modelcontextprotocol.io/registry/quickstart) for a
 remote server: install the publisher, write `server.json`, log in, publish, and check that it is listed.
 
+**Most decision servers belong in a private registry.** A deployment on a private network, as most will be, is listed
+in a registry your organisation runs, so nothing about it leaves the network: the same software, API and steps, with
+`--registry <its address>` when you log in. [Public or private](#public-or-private) says which to use and who may
+publish to each; [a private registry on this computer](#a-private-registry-on-this-computer) runs one natively to try
+the steps on.
+
 ## What you publish
 
 A deployment is a **remote** server: an address clients reach over Streamable HTTP. The entry lists that address under
