@@ -28,9 +28,12 @@ Three principles:
   unless it uses judges, and routing's CLM runs on a Mac or one GPU. Nothing leaves the server except through your
   tools; a hosted model, behind the agent or deriving rules, sees only what is sent to it.
 
-**[Getting started](docs/getting-started.md)** covers your environment and the two styles of decision, installing,
-the examples, building your own and connecting agents. What we measured, including where Claude beat CLM:
-[findings](docs/findings.md).
+**[Getting started](docs/getting-started.md)** examines an imaginary scenario of team outing coordination
+to exercise the environment and the two styles of decision, installing, the examples, building your own and
+connecting agents.
+
+The [examples](examples/README.md) exercise multiple components of the framework and stress
+testing of these examples is recorded in [findings](docs/findings.md).
 
 ## Layout
 
@@ -43,7 +46,7 @@ the examples, building your own and connecting agents. What we measured, includi
 | `AGENTS.md` | Instructions for a coding agent helping you build your own server in a clone |
 | `tests/` | `uv run pytest` runs the fast tests; `-m slow` the ones that load CLM or need Neo4j (`CLM_TEST_BACKEND=torch` for torch); `-m postgres` the ones that need PostgreSQL |
 
-## Licence
+## License
 
-Copyright 2026 Kevin Long. Licensed under the [Apache License 2.0](LICENSE). The licence covers this repository only:
+Copyright 2026 Kevin Long. Licensed under the [Apache License 2.0](LICENSE). The license covers this repository only:
 the models it downloads have their own terms.
