@@ -1,9 +1,9 @@
 # Writing a scenario
 
 `scenario.toml` says which routing decisions the server makes and which tools they use. Weighing options against rules
-instead is [environment.md](environment.md).
-[examples/service_desk/scenario.toml](../examples/service_desk/scenario.toml) uses everything here;
-[walkthrough.md](walkthrough.md) builds one from nothing. A mistake in the file stops start-up with one line naming the
+instead is [environment.md](environment.md). Start with `uv run decision-new-scenario my_scenario`: a working scenario
+for a shop's customer messages, to edit into your own; the snippets below come from it, or extend it.
+[walkthrough.md](walkthrough.md) builds one step by step. A mistake in the file stops start-up with one line naming the
 setting. The key tables and the exact rules are in [scenario-reference.md](scenario-reference.md).
 
 ## One decision
@@ -30,14 +30,14 @@ so without an "out of scope" route an unrelated request lands on a real one.
 
 ```toml
 [routing]
-instructions = "What does the requester need?"
+instructions = "What does the customer need?"
 confidence_threshold = 0.6
-inform = ["table_tags"]
+inform = ["order_status"]
 
-[routes.Data_Access]
-description = "The requester needs access to an existing dataset or system."
-examples = ["Can I get into the oncology registry?"]
-inform = ["lookup_queue"]
+[routes.Refund]
+description = "The customer wants their money back for an order."
+examples = ["The kettle arrived broken, I want a refund"]
+inform = ["refund_policy"]
 ```
 
 An uncertain decision is still returned, with `uncertain: true`: informing tools and questions run, acting tools do
@@ -49,19 +49,19 @@ or the routing question means training again. The keys: [reference](scenario-ref
 CLM can answer other questions about each request. The answers go to the agent and the acting tools.
 
 ```toml
-[questions.identifiable]
+[questions.urgent]
 type = "noul"
-instructions = "Does this request involve data that identifies individual patients?"
+instructions = "Does the customer need this sorted out urgently?"
 
-[questions.urgency]
+[questions.upset]
 type = "score"
-instructions = "How soon is this needed?"
-criteria = ["No deadline is mentioned", "Needed within weeks", "Needed within days"]
+instructions = "How upset is the customer?"
+criteria = ["Calm", "Annoyed", "Angry"]
 
 [questions.team]
 type = "choice"
 instructions = "Which team should handle this?"
-criteria = { reporting = "Dashboards and reports", data = "Tables and data quality" }
+criteria = { warehouse = "Damaged, wrong or missing items", payments = "Charges and refunds" }
 ```
 
 The keys and what training covers: [reference](scenario-reference.md#questions-for-clm).
@@ -73,8 +73,8 @@ follow it, and to the acting tools.
 
 ```toml
 [[rules]]
-when = "urgency >= 1.5"
-tell = "Set the ticket's priority to High and state the deadline in the summary."
+when = "upset >= 1.5"
+tell = "Apologise first, and offer to call the customer back."
 ```
 
 The `when` syntax: [reference](scenario-reference.md#rules).
@@ -86,12 +86,12 @@ them. Both kinds are Python functions in a module beside the scenario.
 
 ```toml
 [tools]
-module = "service_desk_tools"      # service_desk_tools.py beside this file
+module = "my_scenario_tools"      # my_scenario_tools.py beside this file
 
 [tools.settings]                   # passed to your module; any keys you like
-tracker_url = "http://127.0.0.1:8765"
+backend = "mock"
 
-[tools.inform.lookup_queue]
+[tools.inform.order_status]
 questions = []                     # given to no question; without this table, all of them
 ```
 
@@ -99,12 +99,12 @@ Every tool takes one argument, the **request**, filled in as far as the decision
 
 ```python
 {"text": "...",                    # the caller's text
- "route": "Data_Access",
+ "route": "Refund",
  "answers": {...},                 # CLM's answers to the questions
  "rules": [{"when": ..., "tell": ...}],
  "facts": ["...", ...],            # what the informing tools have found so far
  "context": {...}}                 # only if the caller sent one: what your tools need to find their
-                                   # records (a user, ticket or booking ID), as sent; CLM never reads it
+                                   # records (an order, customer or case ID), as sent; CLM never reads it
 ```
 
 A tool returns anything JSON can hold. To report a failure, raise an exception with a message a person can act on:
@@ -118,28 +118,27 @@ An informing tool returns `{"facts": ["a plain sentence", ...]}`, added to what 
 questions. A route's own tools run after the route is chosen, so their facts never change it.
 
 **Tools work things out; CLM judges.** CLM compares meanings; it does not calculate. The tool does the arithmetic and
-lookups and states the result: "the table is tagged as personal data", "the connection will be missed", not raw
-numbers.
+lookups and states the result: "the order is 3 days late", "the item was delivered 2 days ago", not raw dates.
 
 ### Facts the route considers
 
-When the right route depends on facts, such as whether a requested table holds personal data, name tools under
-`[routing] inform`. They run first, and the route is decided with their facts. What the reply holds and where the
-facts go: [reference](scenario-reference.md#facts-the-route-considers).
+When the right route depends on facts, such as whether an order has been delivered, name tools under `[routing] inform`.
+They run first, and the route is decided with their facts. What the reply holds and where the facts go:
+[reference](scenario-reference.md#facts-the-route-considers).
 
 ### Options fetched at decision time
 
-For a choice among things that exist only at that moment (which on-call engineer, runbook or knowledge-base
+For a choice among things that exist only at that moment (which replacement is in stock, which courier, which help
 article), an informing tool finds the candidates and CLM chooses:
 
 ```toml
-[routes.Page_On_Call]
-description = "Someone needs to look at this now."
-inform = ["on_call_now"]
+[routes.Replace]
+description = "The customer wants a damaged or wrong item replaced."
+inform = ["replacements_in_stock"]
 
-[routes.Page_On_Call.options]
-tool = "on_call_now"
-instructions = "Who is best placed to handle this?"
+[routes.Replace.options]
+tool = "replacements_in_stock"
+instructions = "Which replacement suits the customer best?"
 ```
 
 The keys, what the tool returns and what the reply gains:
@@ -151,9 +150,9 @@ An acting tool runs after the decision, on the routes you list, optionally only 
 
 ```toml
 [[actions]]
-tool = "create_ticket"
-routes = ["Data_Access", "Research_Support", "Information_Request"]
-when = "urgency >= 1.5"
+tool = "open_case"
+routes = ["Refund", "Replace"]
+when = "upset >= 1.5"
 confirm = false
 ```
 
@@ -177,3 +176,6 @@ and what `decision-evaluate` and `decision-train` do with the record:
 ## Other settings
 
 The `[clm]`, `[generator]` and `[synthesize]` keys: [reference](scenario-reference.md#other-settings).
+
+A complete scenario with questions, rules and an acting tool against a stand-in tracker:
+[examples/service_desk](../examples/service_desk/README.md).

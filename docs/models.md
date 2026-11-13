@@ -7,7 +7,7 @@ A scenario names two models: CLM, which the decision server uses for every decis
 
 CLM is a frozen encoder (Qwen3-8B) with two small "heads": the encoder turns text into a vector, one head projects the
 situation, the other each option, and the closest option wins. It always runs inside the server's process; `backend`
-under `[clm]` chooses how. The example scenario has both blocks, one commented out.
+under `[clm]` chooses how. The scenario `decision-new-scenario` writes has both blocks, one commented out.
 
 | Key | Backend | Default | Meaning |
 |---|---|---|---|
@@ -58,25 +58,12 @@ they were made for (`Qwen/Qwen3-8B`, at the authors' revision), at full precisio
 - **A GPU with 24 GB of memory or more:** on an A100, CLM used at most 14.4 GB while deciding and 15.2 GB while
   training. On a cloud VM, take a whole GPU; some sizes give a share of one (Azure's NV6ads_A10_v5 has 4 GB of GPU
   memory, however much ordinary memory the VM lists). CLM also runs on a Mac (`device = "mps"`) and on a plain CPU,
-  slowly, with about 24 GB of memory; that is how it was checked, below.
+  slowly, with about 24 GB of memory. What has been checked: [findings](findings.md#backends-checked).
 - `uv sync` installs PyTorch on every machine. On Linux the PyPI build includes CUDA 13, which needs NVIDIA driver 580
   or later (`nvidia-smi` shows the version) and no separate toolkit; without a GPU, CLM runs on the CPU. Linux also
   needs a C compiler and Python's headers (`sudo apt install build-essential python3.12-dev` on Ubuntu): on a GPU,
   PyTorch compiles a helper with Triton on CLM's first run, and stops with "Failed to find C compiler" or "Python.h:
   No such file" without them. To install without a checkout, see [serving.md](serving.md#on-linux).
-
-### What has been checked
-
-| Check | Result |
-|---|---|
-| Torch on a Mac's GPU against the MLX 8-bit build, released heads, 81 requests from the example | Same route for 79; largest difference in a route's probability 0.06 |
-| Training the example with torch on a Mac | 55% → 98% on held-back examples; 15 of 17 hand-written messages |
-| Torch on Linux (arm64), in Docker, on the CPU: the slow test through the server, released heads | Passes: 11 of 17 hand-written messages, in about 5 minutes on 2 CPUs. The Mac's GPU got 12; the difference is a near tie |
-| An Intel Linux image (amd64) | Installs, with PyTorch's CUDA 13.0 build. CLM was not run in it |
-| Torch on an NVIDIA A100 80GB (Azure NC24ads_A100_v4, Ubuntu, driver 580): the slow test through the server, released heads | Passes: 12 of 17, as on the Mac's GPU. About 40 ms a decision; the model loads in 7 seconds once downloaded. The fast tests pass (241, with 2 MLX-only ones skipped) |
-| Torch in Docker on the A100 (an image since removed), with the GPU: the same slow test | Passes: 12 of 17 |
-| Training the example on the A100 | 55% → 98% on held-back examples, kept after the same pass as on the Mac; 15 of 17 hand-written messages; 20 seconds, loading the model included |
-| Torch on an NVIDIA H100 80GB SXM (DigitalOcean, Ubuntu 22.04, driver 580, Python 3.13): the CrowdStrike example, trained and replayed for the whole day | Training 2 min 40 s with the download; 76% on held-back examples as on the A100; 99,806 decisions at 51.1 a second |
 
 ### Heads belong to one backend
 
@@ -87,10 +74,10 @@ conversion; training takes under a minute. The heads file has the same layout fo
 
 ## The language model
 
-It writes example messages for training and is not used while the server runs. Any model that follows instructions
-will do. The `mlx` backend runs in this process and needs a Mac; on Linux, use `ollama` or `openai`. All three have
-written the example's training messages; a larger model writes more varied examples but takes longer. The small MLX
-model below is the default because it runs in this process.
+It writes example messages for training and is not used while the server runs. Any model that follows instructions will
+do. The `mlx` backend runs in this process and needs a Mac; on Linux, use `ollama` or `openai`. All three have been used
+to write training messages; a larger model writes more varied examples but takes longer. The small MLX model below is
+the default because it runs in this process.
 
 ```toml
 [generator]

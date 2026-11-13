@@ -95,13 +95,14 @@ The overview has the commands and what `--read-only` means
 To check what a selection leaves:
 
 ```bash
-npx -y @modelcontextprotocol/inspector@2.13.0 --cli uv run decision-server examples/service_desk/scenario.toml \
+npx -y @modelcontextprotocol/inspector@2.13.0 --cli uv run decision-server my_scenario/scenario.toml \
     --tools "decide*" --exclude-tools decide_many --method tools/list           # decide and describe
-npx -y @modelcontextprotocol/inspector@2.13.0 --cli uv run decision-server examples/service_desk/scenario.toml \
-    --read-only --method tools/call --tool-name decide --tool-arg "text=I need access to the readmissions data"
+npx -y @modelcontextprotocol/inspector@2.13.0 --cli uv run decision-server my_scenario/scenario.toml \
+    --read-only --method tools/call --tool-name decide \
+    --tool-arg "text=The kettle arrived broken, I want a refund" --tool-arg 'context={"order": "A100"}'
 ```
 
-The second shows `create_ticket` skipped with the reason "read-only server", and the mock tracker is not called.
+On a Refund, the second shows `open_case` skipped with the reason "read-only server", and no case is opened.
 
 ## Where the time goes
 
@@ -135,13 +136,8 @@ else `unknown`) and the error count.
 
 ### One at a time or many at once
 
-The table gives decisions a second, with encoding's share of the time in brackets, on the example scenario's 318
-example messages. Each run was in a fresh server, measured before packing (below) and not measured again:
-
-| Calls | M5 Max, 64 GB, MLX | A100 80 GB, torch |
-|---|---|---|
-| `decide`, one message at a time | 14.7 (95%) | 19.8 (94%) |
-| `decide_many`, 100 messages a call | 22.4 (93%) | 71.6 (87%) |
+Decisions a second on a Mac and an A100, one at a time and in batches, and on an H100:
+[findings](findings.md#serving-speed).
 
 On torch, a call's texts are **packed end to end, with no padding**, into rows of up to `batch_tokens` (2,048) tokens.
 An attention mask keeps each text to its own tokens, and positions count as if it were alone, so every vector is the
@@ -149,11 +145,3 @@ one it would get alone. Rows go to the GPU without waiting; the vectors come bac
 is encoded once for all its questions:** CLM reads a message with each question appended, so within a row the shared
 start comes once and each question's tokens attend to it. Before packing, that halved the tokens. The MLX build has
 its own encoder and does neither.
-
-| Measured | Result |
-|---|---|
-| Row size, A100 | 1,024 and 2,048 tokens equally fast; 4,096 7% slower; 8,192 25% slower: the mask makes attention cover the whole row |
-| Tools' share, A100 | The example's tools at first made a new HTTP client per call, about 17 ms each, which held `decide_many` to 23 a second until they shared one ([scenario reference](scenario-reference.md#tools)). Their share grows as CLM gets faster |
-| Packing's effect on routes | A text's numbers differ very slightly when it is encoded with others, so a near tie can flip. 2 of the 318 did on the Mac and 1 on the A100, all about 0.50 against 0.49, well below the confidence threshold; no acting tool ran |
-| Holding the lock | A `decide_many` call holds CLM for its batch, so other calls wait: 1,000 requests take about 20 seconds on the A100 |
-| H100 80 GB (SXM) | The CrowdStrike example decided 2.5 times as fast as on the A100, 46.6 against 18.8 a second on the same 3,000 bookings, and the whole day of 99,806 in 32.5 minutes ([its README](../examples/crowdstrike/measurements.md#the-whole-day-on-a-data-centre-gpu)) |

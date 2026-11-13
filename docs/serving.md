@@ -66,38 +66,35 @@ What is accepted and refused, and the Keycloak and Entra ID steps:
 
 ### Inspecting a server
 
-The Inspector's page, and what it shows for each example, is in
-[getting-started.md](getting-started.md#2-look-inside-the-server). A server already running over HTTP is reached with
-its address and the `Authorization` header: on the page, or from the command line, for a check you can repeat (the
-command line needs Node; `npx` downloads the Inspector). With the handbook server running and its documents in
-PostgreSQL ([examples/handbook](../examples/handbook/README.md)):
+The Inspector's page is described in [getting-started.md](getting-started.md#2-look-inside-the-server). A server already
+running over HTTP is reached with its address and the `Authorization` header: on the page, or from the command line, for
+a check you can repeat (the command line needs Node; `npx` downloads the Inspector):
 
 ```bash
 export DECISION_SERVER_KEY=<a long random key>
-uv run decision-server examples/handbook/environment.toml --http --port 8000
+uv run decision-server my_environment/environment.toml --http --port 8000
 # in another shell
 npx -y @modelcontextprotocol/inspector@2.13.0 --cli http://127.0.0.1:8000/mcp --transport http \
     --header "Authorization: Bearer <the key>" --method resources/list
 ```
 
 The other methods are `tools/list`, `resources/templates/list` and `prompts/list`. To read or get one, add
-`--method resources/read --uri "rule://match_eligible"`, `--uri "document://handbook/hb-401k-2026/(2)"`, or
-`--method prompts/get --prompt-name answer_question --prompt-args "question=Am I eligible for the 401(k) match?"`.
-Each prints JSON: on 4 November 2026, Inspector 2.13.0 read the rule and the passage as JSON and got the prompt as
-one user message ([environment.md](environment.md#resources-a-prompt-and-context)). The scenario server offers tools
-only.
+`--method resources/read --uri "rule://<a rule>"`, `--uri "document://<collection>/<id>/<passage>"`, or
+`--method prompts/get --prompt-name answer_question --prompt-args "question=Where should the Platform team meet?"`. Each
+prints JSON: a rule or a passage as JSON, the prompt as one user message
+([environment.md](environment.md#resources-a-prompt-and-context)). The scenario server offers tools only.
 
 ## Choosing the tools, and a read-only server
 
 By default a server offers every tool it has. An operator can offer fewer, for a scenario or an environment:
 
 ```bash
-# only the scenarios and reading the handbook (describe is always offered: agents start with it)
-uv run decision-server examples/handbook/environment.toml --tools "describe,scenario_*,search_*,document_*"
+# only the scenarios (describe is always offered: agents start with it)
+uv run decision-server my_environment/environment.toml --tools "describe,scenario_*"
 # everything but the queries and one decision
-uv run decision-server examples/tariff/environment.toml --exclude-tools "query_*,decision_news_risk"
-# routing that decides and informs but opens no ticket
-uv run decision-server examples/service_desk/scenario.toml --read-only
+uv run decision-server my_environment/environment.toml --exclude-tools "query_*,decision_budget"
+# routing that decides and informs but opens no case
+uv run decision-server my_scenario/scenario.toml --read-only
 ```
 
 - This limits what agents are offered; it is not an access boundary. The key or OAuth is the boundary: a caller you
@@ -126,17 +123,15 @@ uv run decision-server my_scenario.toml --http --trace calls.jsonl
 uv run decision-trace-report calls.jsonl [--since 2h] [--until 15m]
 ```
 
-What a trace line and the report hold: [reference](serving-reference.md#where-the-time-goes). Decisions a second on a
-Mac, an A100 and an H100, one at a time and in batches, and how a batch is packed:
-[one at a time or many at once](serving-reference.md#one-at-a-time-or-many-at-once). The headline figures from the
-CrowdStrike day's replay, 3.6 decisions a second on the Mac, 19.2 on an A100 and 51.1 on an H100, are in
-[findings.md](findings.md).
+What a trace line and the report hold: [reference](serving-reference.md#where-the-time-goes). How a batch is packed:
+[one at a time or many at once](serving-reference.md#one-at-a-time-or-many-at-once). Decisions a second on a Mac and on
+GPUs, one at a time and in batches: [findings](findings.md#serving-speed).
 
 ## On Linux
 
 CLM runs inside the server's process, on the backend the scenario's `[clm]` table names. Which backend fits which
 machine, and what each needs, is in [models.md](models.md); what has been checked, the A100 included, is in
-[its table](models.md#what-has-been-checked). To install without a checkout, in a virtual environment:
+[findings](findings.md#backends-checked). To install without a checkout, in a virtual environment:
 
 ```bash
 sudo apt install build-essential python3.12-dev   # PyTorch's Triton compiles a helper on first use

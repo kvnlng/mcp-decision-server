@@ -10,7 +10,7 @@ The text a caller sends with `decide`, `decide_many`, `check_call` or `correct` 
 | What | Where it is written | Who can read it | How to keep it out |
 |---|---|---|---|
 | Every call | CLM, in the server's process (`[clm]`, either backend). The first start downloads CLM from Hugging Face; requests never go there | The process | Not possible |
-| Calls that run tools | Your informing and acting tools, and whatever they call. Acting tools get the raw text, identifiers included; no language model rewords it. The example's `create_ticket` puts it in the ticket | Wherever tools send it | Your tools module and `[tools.settings]`: have tools return and send the least they can |
+| Calls that run tools | Your informing and acting tools, and whatever they call. Acting tools get the raw text, identifiers included; no language model rewords it. A tool that opens a case or ticket may put it there | Wherever tools send it | Your tools module and `[tools.settings]`: have tools return and send the least they can |
 | `correct`, in review mode only | The corrections record, `<scenario>.corrections.jsonl` | Owner only (below) | `[record]`; no review mode |
 | Corrections you train from | The examples file and the trained heads, unencrypted | Whoever reads those files | See below |
 | Only with `--trace FILE --trace-text` | The trace: a scenario's `decide`, `decide_many`, `check_call` and `correct` text; an environment's tool-call arguments. Without `--trace-text` the trace has no text | Owner only, like the record | Leave `--trace-text` off |
@@ -24,8 +24,8 @@ route descriptions and examples, never requests.
 
 This is the protection that matters most, and the framework cannot do it for you.
 
-- Design routes and questions so the decision never needs patient-level details. The example decides "what kind of
-  request" and "how urgent", not anything about a record.
+- Design routes and questions so the decision never needs personal details: decide "what kind of request" and "how
+  urgent", not anything about a record.
 - Give the scenario a route for requests it must not handle, and make the acting tools skip it.
 - Tell the people behind the calling agents what not to type. **Nothing stops them typing it anyway.**
 

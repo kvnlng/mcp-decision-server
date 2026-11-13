@@ -1,7 +1,7 @@
 # Training CLM for your scenario
 
-As released, CLM is general and often wrong on a specific set of routes: it got 8 of 20 hand-written messages right
-on the example scenario. Training fits it to your routes in about a minute.
+As released, CLM is general and often wrong on a specific set of routes. Training fits it to your routes in about a
+minute. What training did on the examples: [findings](findings.md#training).
 
 ## What is trained
 
@@ -20,8 +20,8 @@ and results are reported per answer ("4 of 5"), or "never urgent" would score 90
 **1. Get labelled examples**, from either source or both:
 
 - `uv run decision-synthesize <scenario>` has the language model write messages for each route, in eight styles, into
-  `<scenario>.examples.jsonl`. `[synthesize] messages` says who is writing and to what; the example's is "messages that
-  staff might send to a help desk". Read some of the results; edit the file freely, or add lines:
+  `<scenario>.examples.jsonl`. `[synthesize] messages` says who is writing and to what, such as "messages that customers
+  might send to an online shop's help desk". Read some of the results; edit the file freely, or add lines:
   `{"text": "<a message>", "route": "<a route's name>"}`
 - Correct decisions in review mode: start the server with `--review` in the MCP Inspector
   (`npx -y @modelcontextprotocol/inspector@2.13.0 uv run decision-server <scenario> --review`), call `decide` with a
@@ -32,13 +32,13 @@ A line can also label each question's right answer and, on a route with options,
 labels is trained from it:
 
 ```json
-{"text": "Need the registry by Friday", "route": "Data_Access",
- "answers": {"urgency": 2, "identifiable": true}}
-{"text": "My flight was cancelled; I must be in Denver tonight", "route": "Rebook",
- "facts": ["The 18:05 to Denver has 3 free seats."],
- "options": [{"id": "UA1234", "text": "Departs 18:05, arrives 21:40"},
-             {"id": "UA88", "text": "Departs tomorrow 07:10"}],
- "option": "UA1234"}
+{"text": "The kettle arrived broken and I need the money back today", "route": "Refund",
+ "answers": {"urgent": true, "upset": 1}}
+{"text": "The lamp came with a cracked shade, can you send another?", "route": "Replace",
+ "facts": ["Order A102, a desk lamp, was delivered 2 days ago."],
+ "options": [{"id": "L-20", "text": "The same lamp, in stock, delivered tomorrow"},
+             {"id": "L-21", "text": "The same lamp in black, delivered in 5 days"}],
+ "option": "L-20"}
 ```
 
 A yes/no answer is `true` or `false`, a score the level's number counting from 0, a choice the option's key.
@@ -71,36 +71,12 @@ held-back examples did not improve, nothing is saved.
 
 Then loop: generate, train, try and correct messages in the Inspector, evaluate, adjust, train again.
 
-## What it did on the example
-
-On the 55 held-back generated examples, with the route, urgency and identifiable trained together (each count is the
-number right of all examples with that answer):
-
-| | Released | Trained |
-|---|---|---|
-| Route | 49% (balanced) | 96% (53 of 55) |
-| Urgency: no deadline | 9 of 49 | 47 of 49 |
-| Urgency: within weeks | 0 of 1 | 0 of 1 |
-| Urgency: within days | 5 of 5 | 4 of 5 |
-| Identifiable: no | 17 of 42 | 40 of 42 |
-| Identifiable: yes | 13 of 13 | 13 of 13 |
-| Hand-written test messages (17) through the server, route | | 15 |
-
-- Training the questions did not cost the route: trained on the route alone it was 54 of 55 and 15 of 17.
-- "Within weeks" has two examples in all, one held back, so it cannot be learned. Label more of a rare answer before
-  trusting it.
-
-Two earlier measurements on a similar problem (issue reports, 450 generated examples) showed that most of the gain
-arrived by 100 to 200 examples, and that a plain classifier on the encoder's vectors did about as well as trained
-heads; the heads were chosen so that CLM does every job through one model. `decision-train` prints the classifier's
-accuracy beside its own.
-
 ## Reading the numbers
 
 | Caution | Detail |
 |---|---|
 | Generated examples flatter the result: the held-back ones come from the same model and styles as the training ones | Believe a test on real or hand-written messages; keep such a set aside and never train on it |
-| Small tests move | Earlier five-route example: the trained result on 20 messages was 16 or 17 depending on the run |
+| Small tests move | On a test of 20 messages, one or two right more or less can be the run, not the change ([findings](findings.md#training)) |
 | Look at confidence as well as accuracy | A wrong route below the confidence threshold is marked uncertain and runs no action; a confident wrong one acts. Run `decision-evaluate` on your corrections to choose the threshold |
 
 ## Limits and when to train again
@@ -111,8 +87,7 @@ accuracy beside its own.
   wording: in a test, rewording the options after training dropped accuracy below the untrained model. The server
   detects a change, says so, and uses the released heads until you retrain.
 - Training runs with either backend, on the machine you serve from. Heads trained with one backend are not used by the
-  other ([models.md](models.md#heads-belong-to-one-backend)). Trained with the torch backend on a Mac, the example also
-  reached 98% held-back and 15 of 17.
+  other ([models.md](models.md#heads-belong-to-one-backend)).
 - One example in five of the generated set is held back, chosen by a hash of its text, so the same examples are held
   back on every run. Reviewed routes are always trained on.
 - After training, the "near-identical message" matching that reuses corrections works on different vectors. A spot

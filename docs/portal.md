@@ -8,7 +8,7 @@ second port of the same process, so it sees exactly what agents see. It is part 
 export DECISION_SERVER_KEY=<a long random key>                              # the agents' key
 export DECISION_PORTAL_KEY=<another long random key>                        # signs in to the page
 set -a; . ./.postgres-local.env; set +a                                     # if the environment has documents
-uv run decision-server examples/handbook/environment.toml --http --portal 8400
+uv run decision-server my_environment/environment.toml --http --portal 8400
 ```
 
 Agents use <http://127.0.0.1:8000/mcp> as before; the page is at <http://127.0.0.1:8400>. Sign in with the portal key
@@ -93,23 +93,12 @@ GB).
 The `--ask-*` flags set the first three when the server starts; the page can change them. Follow-ups keep the
 conversation, one per session. **Every tool call is carried out by default**, acting tools included; point them at a
 test system if they must not act for real. A held-back call shows as `[dry run, not sent: TOOL {arguments}]` and the
-model is told. Acting tools run inside `decide`, so holding back `decide` skips the whole decision; a stand-in such as
-the service desk's `mock_tracker.py` shows decisions without real actions.
+model is told. Acting tools run inside `decide`, so holding back `decide` skips the whole decision; a tool's mock
+backend, such as the one `decision-new-scenario` writes, shows decisions without real actions.
 
-**The starter model**, `granite4:micro`, beat `qwen3:4b` and `llama3.2:3b`: fastest, and the only one to call
-`decide`. Same servers, three questions, once each:
-
-| Question | `granite4:micro`, local, free | `claude-opus-5-5`, paid |
-|---|---|---|
-| Who supplies Product Line X's components? | Right | Right |
-| Should sourcing move to Region B? | Passed the product's name, not its id `PX`; every branch failed | Right: 50%, and why 100% was rejected |
-| Service desk: who handles a registry request? | Right route and ticket, but rewrote the ticket's address | Right, and did not claim more than the result showed |
-
-- **A weak answer may be the model, not your server:** every miss was the small model's; Claude got all three on
-  the same tools. Try a larger model before changing tools.
-- **A small model shows unclear descriptions:** two passed a component's name, not its id; "give the id, such as
-  C1" in the tariff descriptions fixed `granite4:micro`. Test with both sizes.
-- **Speed is similar:** 4 to 7 seconds a question for `granite4:micro` on a Mac, about 10 for Claude.
+**The starter model**, `granite4:micro`, is small and free; a weak answer may be the model, not your server. Try a
+larger model before changing tools, and test with both sizes: a small model shows unclear descriptions. How it compared
+with Claude: [findings](findings.md#asks-starter-model).
 
 ## Tests
 

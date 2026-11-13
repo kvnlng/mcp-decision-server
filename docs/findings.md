@@ -1,7 +1,8 @@
-# What the traces showed
+# What we measured
 
-The CrowdStrike example is also the benchmark: runs were traced (`decision-server --trace`) before and after each
-change. The numbers are in the [example's README](../examples/crowdstrike/README.md) and [serving.md](serving.md).
+These are the measurements we made on the examples; the guides link here rather than quote them. The CrowdStrike example
+is also the benchmark: runs were traced (`decision-server --trace`) before and after each change; its own numbers are in
+the [example's README](../examples/crowdstrike/README.md).
 
 ## Where the time goes
 
@@ -55,10 +56,10 @@ The H100 decided the whole day at 50.1 a second.
 |---|---|
 | Train CLM first | Service desk, 55 held-back generated examples: 51% of routes right as released, 98% trained |
 | A GPU makes CLM fast | The day replayed: 3.6 decisions a second on the Mac, 19.2 on an A100 80 GB, 51.1 on an H100 80 GB SXM (torch, bf16) |
-| CLM's probabilities are relative | Tune thresholds on labelled cases |
+| CLM's probabilities are relative | Tune thresholds on labelled cases. An untrained judge leaned one way: on the tariff example's supplier news, harmless items scored 0.47 to 0.79 and risks 0.84 to 0.98 (`examples/tariff/judge_news.py`) |
 | Many bookings go to a person | Threshold 0.6: 5% of the day's bookings got a wrong route not marked uncertain; 46% were marked uncertain, most answered rightly. `decision-evaluate --cases` puts the lowest threshold keeping the routes 90% right at 0.63: better-trained heads are the fix, not a lower threshold |
-| Claude was more accurate, and on the Mac faster | 600 unseen cases: Sonnet 5.5 82% of routes right, Haiku 5.5 79%, CLM 75%; Sonnet took 267 ms a decision, CLM 300 ms. CLM costs nothing per decision, keeps the messages on the machine and marks most of its wrong answers uncertain |
-| `check_call` is weak as a yes or no | A rebooking and a refund for the same passenger: it approved the right one and refused the wrong one for 114 of 200; compared with each other, 169 were told apart. `decide` was right for 162 and marks most of its mistakes uncertain |
+| Claude was more accurate, and on the Mac faster | 600 unseen cases (CLM as released got 17%): Sonnet 5.5 82% of routes right, Haiku 5.5 79%, CLM 75%; Sonnet took 267 ms a decision, CLM 300 ms. CLM costs nothing per decision, keeps the messages on the machine and marks most of its wrong answers uncertain |
+| `check_call` is weak as a yes or no | On an M5 Max with trained heads, approving at 0.5, over the 200 check cases whose answer is Rebook or Refund, with a rebooking and a refund proposed for the same passenger: it approved the right one and refused the wrong one for 114 of 200; compared with each other, 169 were told apart. `decide` was right for 162 and marks most of its mistakes uncertain |
 
 From the local-document examples ([examples/noncompete](../examples/noncompete/README.md),
 [examples/handbook](../examples/handbook/README.md)):
@@ -74,3 +75,83 @@ From the local-document examples ([examples/noncompete](../examples/noncompete/R
 | Fully local derivation let wrong figures through the check | gemma4 derived 9 of 11 that pass the stricter check (10 of 11 the first), but two are wrong: it read "100% of the first 3% ... 50% of the next 3%" as tiers of 100% and 50% of pay. Every figure is in the quote, so the check cannot tell a rate from a width: it catches figures not in the document, not figures in the wrong place, which is the person's part. The scripted approval passed them; gemma4 answering from its own layer stated two wrong figures as fact (a $3,680 match where the key says $3,220). gemma4 also needed thinking off: with thinking on, under a JSON schema, it ran past 100,000 tokens without answering |
 | A second reading caught the misplaced figures when Claude read, only partly when a local model did | `decision-derive check` can have a second model derive each entry again without the first answer; a disagreement fails the check. On gemma4's layer, Claude caught both wrong tiers and flagged none of the 9 right entries; granite4:micro caught both but flagged 5 right entries (it read the rates as 3); qwen3:14b caught one and agreed with the other, making gemma4's own mistake, so a wrong figure passed both checks. gemma4 reading Claude's all-right layer raised 3 false alarms of 11. Agreement is not proof; every entry still needs a person. One run each ([a second reading](../examples/handbook/README.md#a-second-reading)) |
 | The handbook alone, with the calculations, was nearly enough for Claude and not for gemma4 | No rules: Claude gave 16 of 17 and recognised the superseded 2024 edition as replaced; gemma4 10 of 17 and one wrong figure, passing the match's rates to the calculation wrongly |
+
+## Training
+
+On an earlier, five-route version of the service desk example, CLM as released got 8 of 20 hand-written messages right,
+and the trained result on those 20 was 16 or 17 depending on the run. On the current version's 55 held-back generated
+examples, with the route, urgency and identifiable trained together (each count is the number right of all examples with
+that answer):
+
+| | Released | Trained |
+|---|---|---|
+| Route | 49% (balanced) | 96% (53 of 55) |
+| Urgency: no deadline | 9 of 49 | 47 of 49 |
+| Urgency: within weeks | 0 of 1 | 0 of 1 |
+| Urgency: within days | 5 of 5 | 4 of 5 |
+| Identifiable: no | 17 of 42 | 40 of 42 |
+| Identifiable: yes | 13 of 13 | 13 of 13 |
+| Hand-written test messages (17) through the server, route | | 15 |
+
+- The same 55 held-back examples appear three times on this page, from different runs: the route alone (51% as released,
+  98% trained, in the table above), the route with the questions (this table, balanced) and the torch backend (55%
+  released, under backends checked).
+- Training the questions did not cost the route: trained on the route alone it was 54 of 55 and 15 of 17.
+- "Within weeks" has two examples in all, one held back, so it cannot be learned. Label more of a rare answer before
+  trusting it.
+
+Two earlier measurements on a similar problem (issue reports, 450 generated examples) showed that most of the gain
+arrived by 100 to 200 examples, and that a plain classifier on the encoder's vectors did about as well as trained heads;
+the heads were chosen so that CLM does every job through one model. `decision-train` prints the classifier's accuracy
+beside its own.
+
+## Backends checked
+
+On the service desk example, unless a row says otherwise:
+
+| Check | Result |
+|---|---|
+| Torch on a Mac's GPU against the MLX 8-bit build, released heads, 81 requests | Same route for 79; largest difference in a route's probability 0.06 |
+| Training with torch on a Mac | 55% → 98% on held-back examples; 15 of 17 hand-written messages |
+| Torch on Linux (arm64), in Docker, on the CPU: the slow test through the server, released heads | Passes: 11 of 17 hand-written messages, in about 5 minutes on 2 CPUs. The Mac's GPU got 12; the difference is a near tie |
+| An Intel Linux image (amd64) | Installs, with PyTorch's CUDA 13.0 build. CLM was not run in it |
+| Torch on an NVIDIA A100 80GB (Azure NC24ads_A100_v4, Ubuntu, driver 580): the slow test through the server, released heads | Passes: 12 of 17, as on the Mac's GPU. About 40 ms a decision; the model loads in 7 seconds once downloaded. The fast tests pass (241, with 2 MLX-only ones skipped) |
+| Torch in Docker on the A100 (an image since removed), with the GPU: the same slow test | Passes: 12 of 17 |
+| Training on the A100 | 55% → 98% on held-back examples, kept after the same pass as on the Mac; 15 of 17 hand-written messages; 20 seconds, loading the model included |
+| Torch on an NVIDIA H100 80GB SXM (DigitalOcean, Ubuntu 22.04, driver 580, Python 3.13): the CrowdStrike example, trained and replayed for the whole day | Training 2 min 40 s with the download; 76% on held-back examples as on the A100; 99,806 decisions at 51.1 a second |
+
+## Serving speed
+
+The table gives decisions a second, with encoding's share of the time in brackets, on the service desk example's 318
+messages. Each run was in a fresh server, measured before packing ([how a batch is
+packed](serving-reference.md#one-at-a-time-or-many-at-once)) and not measured again:
+
+| Calls | M5 Max, 64 GB, MLX | A100 80 GB, torch |
+|---|---|---|
+| `decide`, one message at a time | 14.7 (95%) | 19.8 (94%) |
+| `decide_many`, 100 messages a call | 22.4 (93%) | 71.6 (87%) |
+
+| Measured | Result |
+|---|---|
+| Row size, A100 | 1,024 and 2,048 tokens equally fast; 4,096 7% slower; 8,192 25% slower: the mask makes attention cover the whole row |
+| Tools' share, A100 | The service desk's tools at first made a new HTTP client per call, about 17 ms each, which held `decide_many` to 23 a second until they shared one ([scenario reference](scenario-reference.md#tools)). Their share grows as CLM gets faster |
+| Packing's effect on routes | A text's numbers differ very slightly when it is encoded with others, so a near tie can flip. 2 of the 318 did on the Mac and 1 on the A100, all about 0.50 against 0.49, well below the confidence threshold; no acting tool ran |
+| Holding the lock | A `decide_many` call holds CLM for its batch, so other calls wait: 1,000 requests take about 20 seconds on the A100 |
+| H100 80 GB (SXM) | The CrowdStrike example decided 2.5 times as fast as on the A100, 46.6 against 18.8 a second on the same 3,000 bookings, and the whole day of 99,806 in 32.5 minutes ([its README](../examples/crowdstrike/measurements.md#the-whole-day-on-a-data-centre-gpu)) |
+
+## Ask's starter model
+
+The portal's starter model for Ask, `granite4:micro`, beat `qwen3:4b` and `llama3.2:3b`: fastest, and the only one to
+call `decide`. The tariff and service desk examples' servers, three questions, once each:
+
+| Question | `granite4:micro`, local, free | `claude-opus-5-5`, paid |
+|---|---|---|
+| Who supplies Product Line X's components? | Right | Right |
+| Should sourcing move to Region B? | Passed the product's name, not its id `PX`; every branch failed | Right: 50%, and why 100% was rejected |
+| Service desk: who handles a registry request? | Right route and ticket, but rewrote the ticket's address | Right, and did not claim more than the result showed |
+
+- **A weak answer may be the model, not your server:** every miss was the small model's; Claude got all three on the
+  same tools. Try a larger model before changing tools.
+- **A small model shows unclear descriptions:** two passed a component's name, not its id; "give the id, such as C1" in
+  the tariff descriptions fixed `granite4:micro`. Test with both sizes.
+- **Speed is similar:** 4 to 7 seconds a question for `granite4:micro` on a Mac, about 10 for Claude.

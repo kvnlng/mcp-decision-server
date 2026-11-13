@@ -92,18 +92,16 @@ the reason (`route uncertain`, `no option`, `option uncertain`, `read-only serve
 | `[tool_check] instructions` | `"Is this tool call appropriate for what the user asked?"` | The question CLM is asked |
 | `[tool_check] threshold` | `0.5` | At or above this (0 to 1) the call is approved |
 
-CLM's opinion is advice. Training covers the routes and questions, not this question. On the CrowdStrike example it
-approved the right call and refused the wrong one for 114 of 200. That run was on an M5 Max with trained heads,
-approving at 0.5, over the 200 check cases whose answer is Rebook or Refund, with a rebooking and a refund proposed
-for each ([examples/crowdstrike](../examples/crowdstrike/README.md), [findings.md](findings.md)).
+CLM's opinion is advice. Training covers the routes and questions, not this question, and as a yes or no it is weak:
+measure it on your own calls before relying on it
+([findings](findings.md#what-the-measurements-say-about-the-decisions)).
 
 ## Corrections and reuse
 
 `correct` saves the owner's route for a request to the record, optionally with the right answers
-(`"answers": {"urgency": 2, "identifiable": true}`) and, on a route with options, the right option's id. The route's
-informing tools run again, so send the same `context` as with `decide` and the tools will find the same facts.
-`agreement` reports how often CLM's own route agrees with the saved corrections. A route reused from a correction is
-never uncertain.
+(`"answers": {"urgent": true}`) and, on a route with options, the right option's id. The route's informing tools run
+again, so send the same `context` as with `decide` and the tools will find the same facts. `agreement` reports how often
+CLM's own route agrees with the saved corrections. A route reused from a correction is never uncertain.
 
 | Key | Default | Meaning |
 |---|---|---|

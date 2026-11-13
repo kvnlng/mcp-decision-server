@@ -3,11 +3,11 @@
 An environment is what you define: queries over your data, rules, calculations and the alternatives to weigh. Decisions
 over an environment come in two styles: routing a message with CLM ([scenario.md](scenario.md)), or weighing options
 against your rules, set out in `environment.toml`, which this guide describes. Weighing suits decisions that rest on an
-organisation's data, with arithmetic, policy and alternatives to compare: "should we move Product Line X's sourcing to
-Region B, and what would it do to the Q3 margin and our delivery terms?".
+organisation's data, with arithmetic, policy and alternatives to compare: "should we buy more from another region, and
+what would it do to our margin and delivery terms?".
 
-Start with `uv run decision-new-environment my_environment`: a working offsite-planning environment to edit into your
-own. [examples/tariff](../examples/tariff/README.md) uses everything here.
+Start with `uv run decision-new-environment my_environment`: a working environment, a made-up team choosing a venue for
+its offsite, to edit into your own. The snippets below come from it, or extend it.
 
 ## Four parts, and one rule
 
@@ -34,9 +34,9 @@ loading with one line naming the setting.
 
 ```toml
 [environment]
-name = "Component sourcing"
-description = "What the agent reads first: what this is for and where to start."
-functions = "tariff_functions"            # tariff_functions.py beside this file
+name = "Team offsite"
+description = "What the agent reads first: what this is for, which ids to ask about and where to start."
+functions = "my_environment_functions"    # my_environment_functions.py beside this file
 
 [graph]
 backend = "builtin"                       # or "neo4j": see "On Neo4j" below
@@ -52,8 +52,8 @@ its tools, resources and prompts, and calls one, with no agent
 [the walkthrough](#from-a-new-folder-to-a-registered-server)).
 
 ```bash
-uv run decision-server examples/tariff/environment.toml            # MCP over stdio
-DECISION_SERVER_KEY=... uv run decision-server examples/tariff/environment.toml --http
+uv run decision-server my_environment/environment.toml            # MCP over stdio
+DECISION_SERVER_KEY=... uv run decision-server my_environment/environment.toml --http
 ```
 
 `--http`, the key and `--trace` work as in routing ([serving.md](serving.md)). Review mode is for routing only.
@@ -68,10 +68,10 @@ operations named queries use: [reference](environment-reference.md#the-graph).
 ## Named queries
 
 ```toml
-[queries.suppliers_of]
-description = "Who supplies a component: region, unit price, lead time in days, defect rate and freight per unit."
-params = { component = "string" }         # string, number, integer, boolean or list
-function = "suppliers_of"                 # suppliers_of(graph, component) -> a list of dicts
+[queries.team_members]
+description = "Where a team's people are based: one row per city, with the city's id and name and the headcount."
+params = { team = "string" }              # string, number, integer, boolean or list
+function = "team_members"                 # team_members(graph, team) -> a list of dicts
 ```
 
 **A query must fail when what it was asked about does not exist.** No rows looks like an answer: an unknown team had
@@ -105,14 +105,14 @@ The settings, the file format, the loading command and what text in documents ca
 A decision is a DMN decision table, or a function for a rule DMN cannot express:
 
 ```toml
-[decisions.sla_threshold]
-description = "Whether a delivery extension in days is allowed for a key client of the given tier."
-dmn = "rules/sla_threshold.dmn"           # its inputs, with their typeRef, are the decision's parameters
+[decisions.capacity]
+description = "Whether everyone fits: allowed when the spare seats are zero or more."
+dmn = "rules/capacity.dmn"                # its inputs, with their typeRef, are the decision's parameters
 
-[decisions.credit_check]
+[decisions.approver]
 description = "..."
-params = { amount = "number" }
-function = "credit_check"                 # credit_check(amount) -> a dict of outputs
+params = { total_cost = "number" }
+function = "approver"                     # approver(total_cost) -> a dict of outputs
 ```
 
 Each evaluation records its inputs, its outputs and, for a table, the rules that fired. The supported DMN subset and
@@ -121,26 +121,26 @@ the error cases: [reference](environment-reference.md#decisions).
 ## Calculations
 
 ```toml
-[calculations.branch_figures]
-description = "Q3 revenue, cost, tariff cost and margin, lead time, delivery extension and defect rate ..."
-params = { q3_units = "number", unit_price = "number", offers = "list", region_b_share = "number" }
-function = "branch_figures"               # branch_figures(**inputs) -> a dict of results
+[calculations.offsite_figures]
+description = "The offsite's travel, venue, catering and total cost in pounds, the headcount and the spare seats ..."
+params = { members = "list", fares = "list", venue = "list", days = "integer" }
+function = "offsite_figures"              # offsite_figures(**inputs) -> a dict of results
 ```
 
-All arithmetic belongs in a calculation (adding up rows, a margin, a blended lead time), recorded like a rule. What
-a calculation may return: [reference](environment-reference.md#calculations).
+All arithmetic belongs in a calculation (adding up rows, a total cost, the spare seats), recorded like a rule. What a
+calculation may return: [reference](environment-reference.md#calculations).
 
 ## Scenarios
 
 ```toml
-[scenarios.sourcing]
-description = "Where to source a product's components: the share bought from Region B. ..."
-params = { product = "string" }
-levers = { region_b_share = [0, 0.5, 1.0] }     # the only values the agent may choose
-branch = "sourcing_branch"
-objective = "q3_margin"                         # a key of the figures the branch returns
-maximise = true
-limits = ["sla_threshold", "quality_threshold", "supply_concentration"]
+[scenarios.offsite]
+description = "Which venue to hold a team's offsite at. ..."
+params = { team = "string", days = "integer" }
+levers = { venue = ["V1", "V2", "V3"] }         # the only values the agent may choose
+branch = "offsite_branch"
+objective = "total_cost"                        # a key of the figures the branch returns
+maximise = false
+limits = ["capacity", "budget"]
 ```
 
 The engine (`engine.py`) runs the branch function once per combination of lever values, or for the branches the agent
@@ -148,11 +148,13 @@ asks for. The function sets out a branch's path: which queries run, which rule i
 changes them, and which calculation gives the figures. It does everything through `steps` and returns the figures:
 
 ```python
-def sourcing_branch(steps, params, levers):
-    product = steps.query("product_facts", product=params["product"])[0]
+def offsite_branch(steps, params, levers):
+    venue = steps.query("venue_facts", venue=levers["venue"])
+    members = steps.query("team_members", team=params["team"])
     ...
-    figures = steps.calculate("branch_figures", q3_units=product["q3_units"], ...)
-    steps.decide("quality_threshold", defect_rate=figures["defect_rate"])
+    figures = steps.calculate("offsite_figures", members=members, fares=fares, venue=venue, days=params["days"])
+    steps.decide("capacity", spare_seats=figures["spare_seats"])
+    steps.decide("budget", total_cost=figures["total_cost"])
     return figures
 ```
 
@@ -163,16 +165,16 @@ Limits, failed branches, ranking and what is a parameter and what a lever:
 
 ## Judges
 
-Some evidence is text no rule can read, such as news about a supplier. A judge asks CLM one yes/no question of a text
-and gives the probability of yes. That probability is a rule's input, so the rule, not the model, decides.
+Some evidence is text no rule can read, such as news about a venue. A judge asks CLM one yes/no question of a text and
+gives the probability of yes. That probability is a rule's input, so the rule, not the model, decides.
 
 ```toml
 [clm]
 backend = "mlx"            # or "torch", on Linux with a GPU; model_id and device as in scenario.toml
 
-[judges.delivery_risk]
-description = "Whether a piece of news about a supplier is a risk to its deliveries."
-instructions = "Does this news mean the supplier may fail to deliver its parts on time in the coming months?"
+[judges.venue_risk]
+description = "Whether a piece of news about a venue is a risk to holding an event there."
+instructions = "Does this news mean the venue may be closed or unusable in the coming months?"
 ```
 
 A judgement in a branch, how CLM loads and what the probabilities mean: [reference](environment-reference.md#judges).
@@ -180,28 +182,32 @@ A judgement in a branch, how CLM loads and what the probabilities mean: [referen
 ## Rules an agent can explore
 
 A decision can carry what a person should know about its rule, and the information it needs. The environment then adds
-two tools, `rules` and `rule`, and `describe` lists the topics: the kinds of decision the rules govern. From
-[examples/new_site](../examples/new_site/README.md):
+two tools, `rules` and `rule`, and `describe` lists the topics: the kinds of decision the rules govern. For the starter
+environment's budget:
 
 ```toml
-[decisions.stress_test.rule]
-statement = "With revenue 20% below plan, a new site must still pay back within 7 years."
-reason = "Plans are often optimistic; a site must survive a bad start."
+[decisions.budget.rule]
+statement = "An offsite may cost at most 9,000 pounds in all: travel, venue and catering."
+reason = "Each team's offsite is paid from one yearly events budget."
 owner = "Finance"
-version = "2026-02"
-governs = ["open_site"]                  # the topics this rule governs
-depends_on = ["payback"]                 # other rules, which must have a rule table too
-needs = ["neighbourhood", "household_income", "site_costs"]
+version = "2026-01"
+governs = ["offsite"]                    # the topics this rule governs
+needs = ["team", "fares"]
 
-[information.neighbourhood]
-description = "Which neighbourhood the site would be in (a census tract id, such as tract_4102)"
+[information.team]
+description = "Which team the offsite is for (a team id, such as T1)"
 kind = "supplied"                        # the person asking must give it; no query
 
-[information.household_income]
-description = "Median household income in the neighbourhood"
+[information.fares]
+description = "The return train fare in pounds per person between two cities"
 kind = "estimate"                        # or "fact"; both name the query that provides it
-query = "household_income"
+query = "return_fare"
 ```
+
+Here the fares are an estimate, so `return_fare` must say `kind = "estimate"`, its rows must carry `low`, `central`,
+`high`, `source` and `as_of`, and `offsite_figures` must read each row's `value`, not `fare`. A rule can also name the
+rules it rests on in `depends_on`; each needs a rule table too
+([reference](environment-reference.md#rules-an-agent-can-explore)).
 
 The two tools, citations, what stops loading and facts against estimates:
 [reference](environment-reference.md#rules-an-agent-can-explore).
@@ -209,15 +215,18 @@ The two tools, citations, what stops loading and facts against estimates:
 ## Risk
 
 ```toml
-[scenarios.new_site]
+[scenarios.offsite]
 ...
-limits = ["payback", "stress_test", "debt_covenant", "reserve_policy"]
-uncertain = ["household_income"]         # estimate queries to try at their low and high
-approvals = ["capital_approval"]         # decisions with required, who and reason: listed, never rejecting
+limits = ["capacity", "budget"]
+uncertain = ["return_fare"]              # estimate queries to try at their low and high
+approvals = ["approver"]                 # decisions with required, who and reason: listed, never rejecting
 ```
 
-**Only your rules reject.** A stress test is a limit like any other: in the example, payback with revenue 20% below
-plan. Warnings, headroom and approvals: [reference](environment-reference.md#risk).
+`approver` here is a decision whose outputs are `required`, `who` and `reason`; the branch checks it with
+`steps.decide("approver", total_cost=...)`, as it checks a limit, or every branch fails.
+
+**Only your rules reject.** A stress test is a limit like any other, such as the budget checked with fares 20% above
+their estimate. Warnings, headroom and approvals: [reference](environment-reference.md#risk).
 
 ## The decision record
 
@@ -242,17 +251,17 @@ table the layer is ignored:
 ```toml
 [derived]
 admit = ["approved"]                 # the default; or ["approved", "checked"], and describe says so
-collection = "handbook"              # where the slots are derived from, unless a slot names its own
+collection = "travel_policy"        # where the slots are derived from, unless a slot names its own
 
-[derived.decisions.carryover_limit]
-description = "How many unused days of paid time off carry into next year, from full years of service."
-inputs = { years_of_service = "number" }
-outputs = { carryover_limit = "number" }   # a limit adds allowed; reason and citation are always added
-owner = "People Operations"
-governs = ["benefits"]
+[derived.decisions.catering_limit]
+description = "The most an offsite may spend on catering per head per day, in pounds, by the number of days."
+inputs = { days = "integer" }
+outputs = { catering_limit = "number" }    # a limit adds allowed; reason and citation are always added
+owner = "Finance"
+governs = ["offsite"]
 
-[derived.facts.k401_2026.match_cap]        # node k401_2026, property match_cap
-description = "The plan's cap on the company match, in dollars a plan year."
+[derived.facts.V3.cancellation_days]       # node V3, property cancellation_days, not in the CSV
+description = "How many days before the event the venue can be cancelled without charge."
 type = "number"
 ```
 
@@ -278,7 +287,7 @@ An operator can offer fewer tools, in the file or on the command line
 
 ```toml
 [serve]
-tools = ["describe", "scenario_*", "search_*", "document_*"]   # only these, and describe always
+tools = ["describe", "scenario_*", "search_*", "document_*"]   # only these, and describe always; with a collection
 exclude_tools = ["cites_*", "cited_by_*"]                      # wins over tools
 read_only = true                                               # describe says so; an environment's tools only read
 ```
@@ -299,9 +308,9 @@ The resources, the prompt and where context lives: [reference](environment-refer
 The whole path, with the starter environment:
 
 ```bash
-uv run decision-new-environment offsite                  # a working environment to edit
-npx -y @modelcontextprotocol/inspector@2.13.0 uv run decision-server offsite/environment.toml   # its tools, in the browser
-npx -y @modelcontextprotocol/inspector@2.13.0 --cli uv run decision-server offsite/environment.toml \
+uv run decision-new-environment my_environment          # a working environment to edit
+npx -y @modelcontextprotocol/inspector@2.13.0 uv run decision-server my_environment/environment.toml   # its tools
+npx -y @modelcontextprotocol/inspector@2.13.0 --cli uv run decision-server my_environment/environment.toml \
     --method tools/call --tool-name scenario_offsite --tool-arg team=T1 --tool-arg days=2
 ```
 
@@ -310,8 +319,8 @@ Loft kept at 7,380. Then serve it, list it in a registry and use it:
 
 ```bash
 export DECISION_SERVER_KEY=<a long random key>
-uv run decision-server offsite/environment.toml --http --trace calls.jsonl
-uv run decision-registry offsite/environment.toml --name io.github.you/offsite \
+uv run decision-server my_environment/environment.toml --http --trace calls.jsonl
+uv run decision-registry my_environment/environment.toml --name io.github.you/offsite \
     --url https://offsite.corp.internal/mcp --version 0.1.0 --description "Where a team should hold its offsite"
 mcp-publisher validate server.json && mcp-publisher publish server.json
 npx -y @modelcontextprotocol/inspector@2.13.0 --cli http://127.0.0.1:8000/mcp --transport http \
@@ -328,7 +337,7 @@ reads: each branch's figures, rejecting limits and every step.
 ## The reference agent and the number check
 
 ```bash
-uv run decision-agent examples/tariff/environment.toml "QUESTION"
+uv run decision-agent my_environment/environment.toml "QUESTION"
 uv run decision-agent https://decisions.example.org/mcp "QUESTION"    # a running server, with DECISION_SERVER_KEY
 ```
 
@@ -353,3 +362,6 @@ reported, not blocked; the citation check does the same for citations.
 - **Other graph databases,** such as Memgraph, which also speaks Cypher, through `environment.Connector`.
 - **Calibrated judges:** trained on labelled texts (CLM's heads), so a threshold means a probability and not only a
   rank.
+
+A complete environment with a graph, rules, a scenario, judges and Neo4j:
+[examples/tariff](../examples/tariff/README.md).
