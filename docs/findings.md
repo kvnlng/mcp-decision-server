@@ -164,7 +164,8 @@ messages ([how a batch is packed](serving-reference.md#one-at-a-time-or-many-at-
   whenever texts in a row start alike.
 - **The replay.** 3.6 decisions a second on the Mac (Atlanta's 9,704 bookings), 19.2 on the A100 (the first 27,511; the
   run was stopped to change machines) and 51.1 on the H100 (the whole day).
-- **The whole day.** The H100 decided the day's 99,806 bookings in 32.5 minutes, at 50.1 to 51.1 a second (the traces and the replay's scoreboard count slightly differently)
+- **The whole day.** The H100 decided the day's 99,806 bookings in 32.5 minutes, at 50.1 to 51.1 a second (the traces
+  and the replay's scoreboard count slightly differently)
   ([measurements](../examples/crowdstrike/measurements.md#the-whole-day-on-a-data-centre-gpu)). On the same 3,000
   bookings it was 2.5 times as fast as the A100: 46.6 a second against 18.8.
 - **The peak.** The day's busiest minute needs 10.7 decisions a second. The Mac (3.6) falls behind at the peaks by up to
@@ -248,11 +249,12 @@ fills the GPU, so faster decisions come from encoding less or encoding better. T
   share of the time grows as CLM gets faster.
 
 **Train CLM before trusting it.** Released, CLM routed about half the service desk's messages rightly. Training on
-generated examples brought it to 96–98%; on a similar problem, most of the gain came by 100 to 200 examples. Trained heads fit the exact wording, so
-reworded options need training again. A rare answer with one or two examples, such as "within weeks", cannot be
-learned; label more of it first.
+generated examples brought it to 96–98%; on a similar problem, most of the gain came by 100 to 200 examples. Trained
+heads fit the exact wording, so reworded options need training again. A rare answer with one or two examples, such as
+"within weeks", cannot be learned; label more of it first.
 
-**CLM's place against a hosted model.** In one comparison, Claude was more accurate on unseen cases, and at 8 calls at once faster than CLM on the Mac. CLM's strengths are elsewhere:
+**CLM's place against a hosted model.** In one comparison, Claude was more accurate on unseen cases, and at 8 calls at
+once faster than CLM on the Mac. CLM's strengths are elsewhere:
 
 - it costs nothing per decision;
 - the messages never leave the machine;
@@ -267,8 +269,8 @@ so thresholds are tuned on labelled cases. As a yes or no on a single proposal, 
 **Rules made the local model dependable here; documents added sources.** On the made-up handbook, in one run, both
 models said they could not know the company's figures rather than guess them. With the rules as tools, gemma4 matched
 Claude, 16 of 17 each; with the handbook it fell to 14 of 17, and given the handbook alone it stated one wrong figure.
-Documents mostly added citations and the policy text. Large tool results are a risk for local models: Ollama trims the conversation silently,
-and neither the scenario nor the agent warns yet.
+Documents mostly added citations and the policy text. Large tool results are a risk for local models: Ollama trims the
+conversation silently, and neither the scenario nor the agent warns yet.
 
 **Derived rules need a person.** The mechanical check catches figures that are not in the document, not figures read
 into the wrong place. A second reading by Claude caught the misplaced ones; a second reading by a local model did so
