@@ -118,6 +118,14 @@ function = "approver"                     # approver(total_cost) -> a dict of ou
 Each evaluation records its inputs, its outputs and, for a table, the rules that fired. The supported DMN subset and
 the error cases: [reference](environment-reference.md#decisions).
 
+A table exported from a modelling tool such as Camunda or Kogito loads only when its file holds one decision: a
+decision table in FEEL that needs no other decision, within the subset in the reference. A file of several decisions is
+refused, since decisions are not chained. Put each table in its own file and delete its `requiredDecision`; where one
+table read another's answer, have your branch decide the first and pass its output on, as the decision's own
+`decision_<name>` tool will still ask for it. Rename inputs such as `Age` or `Applicant.age` to lower-case names, as
+they become the tool's arguments. An input that is an expression, such as
+`Violation.Actual Speed - Violation.Speed Limit`, is never worked out: renamed, it becomes a value the caller must give.
+
 ## Calculations
 
 ```toml

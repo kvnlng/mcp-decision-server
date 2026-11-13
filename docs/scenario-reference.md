@@ -94,7 +94,7 @@ the reason (`route uncertain`, `no option`, `option uncertain`, `read-only serve
 
 CLM's opinion is advice. Training covers the routes and questions, not this question, and as a yes or no it is weak:
 measure it on your own calls before relying on it
-([findings](findings.md#what-the-measurements-say-about-the-decisions)).
+([findings](findings.md#decision-quality)).
 
 ## Corrections and reuse
 

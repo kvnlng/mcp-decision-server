@@ -210,7 +210,7 @@ steps.decide("news_risk", probability=probability, headline=headline)
 - **Each judgement is a step** in the trace: `{"kind": "judgement", "name", "inputs": {"text"}, "result":
   {"probability"}}`. Empty text is refused, never judged as "no". A judge without `[clm]` is refused at load.
 - **Probabilities are relative, not calibrated.** An untrained question can lean one way, so harmless texts can score as
-  high as risky ones ([findings](findings.md#what-the-measurements-say-about-the-decisions)). Call `judge_<name>` on
+  high as risky ones ([findings](findings.md#decision-quality)). Call `judge_<name>` on
   labelled texts, some yes and some no, before choosing a threshold, and say how wide the gap was. If the texts do not
   separate, the judge is not ready to be a limit.
 
@@ -365,7 +365,7 @@ many agreed.
 **Agreement is necessary, not sufficient.** Two models can make the same mistake, and a wrong entry then passes both. A
 weak second reader costs false alarms instead. Claude as the second reader caught both wrong entries, as granite4:micro
 did, and flagged none, but sends the documents to Claude. A person still approves every entry
-([findings](findings.md#what-the-measurements-say-about-the-decisions)).
+([findings](findings.md#local-documents-and-derived-rules)).
 
 `decision-server --admit-derived proposed,checked,approved` admits unapproved entries too, for testing only; `describe`
 says so. A scenario, or an environment without a `[derived]` table, refuses the flag. A rejected entry never decides:
