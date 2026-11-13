@@ -25,7 +25,7 @@ be derived from the documents and checked before a person approves it, and each 
 ([Derived rules and facts](#derived-rules-and-facts)). Without judges the server has no language model: the same
 inputs give the same outputs. A judge adds one, for evidence no rule can read, and every answer it gives is traced.
 
-<p align="center"><img src="images/weighing-decision.svg" alt="One weighing decision as a sequence: the agent calls describe, then a scenario tool with its parameters. The engine runs each lever combination through your queries, calculation and limits, rejects a branch over a limit, fails one that skipped a limit or step, and ranks the rest by the objective. The agent answers from the results without calculating, and the number check matches each figure to a tool result." width="760"></p>
+<p align="center"><img src="images/weighing-decision.svg" alt="One weighing decision as a sequence: the agent calls describe, then a scenario tool with its parameters. The engine runs each lever combination through your queries, calculations, judges and limits, then reruns each kept branch at every uncertain estimate's low and high. It rejects a branch over a limit, fails one that skipped a limit or step, warns where a limit fails at a low or high with headroom, lists approvals and ranks the rest by the objective. The agent answers from the results without calculating, and the number check matches each figure to a tool result." width="760"></p>
 
 ## The file
 
@@ -243,7 +243,7 @@ mechanically, and only a person's approval lets it decide. Every decision step, 
 that disagrees with a supplied fact is reported as a conflict. A reading that gave no value, or one a person rejected,
 opens no conflict; the conflict of a fact rejected later is dropped at the next `run`.
 
-<p align="center"><img src="images/derived-states.svg" alt="The statuses of a derived rule or fact: decision-derive run proposes it; passing the mechanical check makes it checked; a person approves it; a person can reject any entry, and a rejected one never decides. A new edition, a document gone or an edited table sends it back to proposed. It decides once loading admits it. A conflict with a supplied fact is open until a person resolves it, and the supplied fact decides throughout." width="760"></p>
+<p align="center"><img src="images/derived-states.svg" alt="The statuses of a derived rule or fact: decision-derive run proposes it; passing the mechanical check, with any second reading, makes it checked, and failing a later check sends it back; a person approves or rejects it. A new edition, a document gone, an edited table or a person sends it back to proposed, a rejected one included, and a rejected one never decides. It decides once loading admits it. A conflict with a supplied fact is open until a person resolves it, and the supplied fact decides throughout." width="760"></p>
 
 The environment declares **slots**, the decisions and facts it needs, without their contents; without a `[derived]`
 table the layer is ignored:
