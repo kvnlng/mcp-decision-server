@@ -62,7 +62,8 @@ How the parts link up, which is where a first build goes wrong:
   scenario must be checked in every branch, with `steps.decide(...)`, or the branch fails with "limit NAME was not
   checked".
 - **A DMN table's input names become the decision's arguments**, lower-case identifiers. The supported DMN is listed
-  in [the reference](docs/environment-reference.md#decisions); no row matching is an error, never a silent "allowed".
+  in [the reference](docs/environment-reference.md#decisions); no row matching is an error, never a silent "allowed",
+  unless the table gives every output a default.
 - **A calculation's `params` take the rows the queries returned**, as `list`, and it returns a dict of figures.
 - **A calculation raises `ValueError` for inputs that make no sense**, such as a meeting of 0 hours. Otherwise every
   option costs nothing and the cheapest wins; with the error, every branch fails and says why.

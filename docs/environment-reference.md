@@ -149,17 +149,28 @@ from. `uv run pytest -m postgres` checks the store against a local database `clm
 
 ## Decisions
 
-The supported DMN subset (`dmn.py`), read from DMN XML of any version:
+The supported DMN subset (`dmn.py`), read from DMN XML of any version. A file holds one decision: a decision table in
+FEEL that requires no other decision.
 
 | Part | Supported |
 |---|---|
 | Hit policies | `UNIQUE` (the default), `FIRST`, `COLLECT` (every matching row; an `aggregation` such as `SUM` is refused) |
 | Input entries | `-`; a literal (`1.5`, `"London"`, `true`); `<`, `<=`, `>`, `>=`, `=` and `!=` with a number; the ranges `[a..b]`, `(a..b)`, `[a..b)` and `(a..b]`; comma-separated lists of these; `not(...)`, which wraps a whole entry, not one item of a list |
-| Output entries | Number, string and boolean literals |
+| Output entries | Number, string and boolean literals; a table's only output may go unnamed and takes the decision's name |
+| Defaults | A `defaultOutputEntry` on every output, given when no rule matches (`UNIQUE`, `FIRST`); shown as a last row of `-` entries with the id `default` |
 
-Refused at load, naming the file and rule: anything else, an empty output entry, `not()`, `not(-)`, and a range whose
-low end is above its high end. An evaluation is an error, never a silent "allowed", when no rule matches (`UNIQUE`,
-`FIRST`), two match under `UNIQUE`, or text reaches an entry that tests a number. An input's `typeRef` gives its
+Refused at load, naming the file (and the rule, where the problem is in one): anything else; a file with several
+decisions, since decisions are not chained (put each table in its own file); a decision that requires another; a
+decision whose logic is not one decision table, such as a literal expression or a context; an `expressionLanguage`
+other than FEEL, such as JUEL or groovy; two outputs with one name; an empty output entry; `not()` and `not(-)`; a range
+whose low end is above its high end; and a default on only some outputs, or under `COLLECT`. An evaluation is an error,
+never a silent "allowed", when no rule matches and the table has no defaults (`UNIQUE`, `FIRST`), two match under
+`UNIQUE`, or text reaches an entry that tests a number.
+
+The tests check files exported by Camunda, Kogito and the DMN TCK: each simple table loads, the TCK's give its expected
+answers, and the rest are refused, naming why. An exported table often names its inputs `Age` or `Risk Category`, or
+reads a path such as `Applicant.age`; rename each input to a lower-case identifier before serving the table, or loading
+refuses it. An input's `typeRef` gives its
 parameter's type; without one it accepts anything, but a number test refuses non-numbers. Input names must be
 lower-case identifiers, as they become the tool's arguments. Entries compare with literals, so a limit that differs
 per client belongs in a column the table can match, such as the client's tier.
