@@ -9,11 +9,11 @@ it runs them, checks them and traces every step. It holds no rules or data of it
 you write the decision down.
 
 Use it when a decision must rest on your information and rules, not an assistant's guess: one made thousands of
-times a day (which team handles a request) or once (whether to change supplier or open a new site). The agent,
-whether Claude, a local model or one built on Databricks, talks to the person; your tools supply the information;
-the decision comes back with its reasons.
+times a day (which team handles a request) or once (whether to change supplier or open a new site). The agent, a
+harness such as Claude Code, ollmcp or one built on Databricks, talks to the person with the model it runs and calls
+your server; your tools supply the information; the decision comes back with its reasons.
 
-<p align="center"><img src="docs/images/architecture.svg" alt="C4 container diagram. An MCP agent calls the MCP server; the administrator uses the portal, which reaches the server in process through a control layer. The server scores options with CLM, reads the environment (rules, queries, your tools), searches the document store and acts on your systems through your tools. decision-derive derives rules from the documents into the environment." width="820"></p>
+<p align="center"><img src="docs/images/architecture.svg" alt="C4 container diagram. An MCP agent, a harness such as Claude Code, calls the MCP server; the administrator uses the portal, which reaches the server in process and runs decision-derive as a job. The server reads the environment (rules, queries, your tools), searches the document store and, for routing and judges only, asks CLM. decision-derive reads documents, asks a language model for rules and writes them, proposed, into the environment. Your tools act on your systems." width="820"></p>
 
 Three principles:
 
@@ -26,7 +26,7 @@ Three principles:
   decision. The reference agent checks every figure in its answer against the tools' results.
 - **It runs where your data is.** The server runs on your own machine or network. Weighing needs no model or GPU
   unless it uses judges, and routing's CLM runs on a Mac or one GPU. Nothing leaves the server except through your
-  tools; a hosted model, as the agent or deriving rules, sees only what is sent to it.
+  tools; a hosted model, behind the agent or deriving rules, sees only what is sent to it.
 
 **[Getting started](docs/getting-started.md)** covers your environment and the two styles of decision, installing,
 the examples, building your own and connecting agents. What we measured, including where Claude beat CLM:
