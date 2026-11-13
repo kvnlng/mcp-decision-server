@@ -84,7 +84,7 @@ Then loop: generate, train, try and correct messages in the Inspector, evaluate,
 - Train again when a route's description or name or the routing question changes, when a trained question's wording
   changes (untrained questions can change freely), when a route's options instructions change and its ranking was
   trained, when you change the CLM build, and when you have corrected more real messages. Trained heads fit the exact
-  wording: in a test, rewording the options after training dropped accuracy below the untrained model. The server
+  wording, so reworded options can score below the untrained model ([findings](findings.md#training)). The server
   detects a change, says so, and uses the released heads until you retrain.
 - Training runs with either backend, on the machine you serve from. Heads trained with one backend are not used by the
   other ([models.md](models.md#heads-belong-to-one-backend)).

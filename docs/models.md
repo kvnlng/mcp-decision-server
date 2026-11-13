@@ -55,10 +55,10 @@ This is the CLM authors' own release, run with PyTorch: their heads (`Contrastiv
 they were made for (`Qwen/Qwen3-8B`, at the authors' revision), at full precision. The first start downloads about
 16 GB into Hugging Face's cache (`HF_HOME`, by default `~/.cache/huggingface`).
 
-- **A GPU with 24 GB of memory or more:** on an A100, CLM used at most 14.4 GB while deciding and 15.2 GB while
-  training. On a cloud VM, take a whole GPU; some sizes give a share of one (Azure's NV6ads_A10_v5 has 4 GB of GPU
-  memory, however much ordinary memory the VM lists). CLM also runs on a Mac (`device = "mps"`) and on a plain CPU,
-  slowly, with about 24 GB of memory. What has been checked: [findings](findings.md#backends-checked).
+- **A GPU with 24 GB of memory or more** ([how much it used](findings.md#backends-checked)). On a cloud VM, take a whole
+  GPU; some sizes give a share of one (Azure's NV6ads_A10_v5 has 4 GB of GPU memory, however much ordinary memory the VM
+  lists). CLM also runs on a Mac (`device = "mps"`) and on a plain CPU, slowly, with about 24 GB of memory. What has
+  been checked: [findings](findings.md#backends-checked).
 - `uv sync` installs PyTorch on every machine. On Linux the PyPI build includes CUDA 13, which needs NVIDIA driver 580
   or later (`nvidia-smi` shows the version) and no separate toolkit; without a GPU, CLM runs on the CPU. Linux also
   needs a C compiler and Python's headers (`sudo apt install build-essential python3.12-dev` on Ubuntu): on a GPU,

@@ -96,6 +96,8 @@ that answer):
 - The same 55 held-back examples appear three times on this page, from different runs: the route alone (51% as released,
   98% trained, in the table above), the route with the questions (this table, balanced) and the torch backend (55%
   released, under backends checked).
+- Trained heads fit the exact wording: in an early test, rewording a route's options after training dropped accuracy
+  below the untrained model.
 - Training the questions did not cost the route: trained on the route alone it was 54 of 55 and 15 of 17.
 - "Within weeks" has two examples in all, one held back, so it cannot be learned. Label more of a rare answer before
   trusting it.
@@ -117,6 +119,7 @@ On the service desk example, unless a row says otherwise:
 | An Intel Linux image (amd64) | Installs, with PyTorch's CUDA 13.0 build. CLM was not run in it |
 | Torch on an NVIDIA A100 80GB (Azure NC24ads_A100_v4, Ubuntu, driver 580): the slow test through the server, released heads | Passes: 12 of 17, as on the Mac's GPU. About 40 ms a decision; the model loads in 7 seconds once downloaded. The fast tests pass (241, with 2 MLX-only ones skipped) |
 | Torch in Docker on the A100 (an image since removed), with the GPU: the same slow test | Passes: 12 of 17 |
+| Memory on the A100 | CLM used at most 14.4 GB of GPU memory while deciding and 15.2 GB while training |
 | Training on the A100 | 55% → 98% on held-back examples, kept after the same pass as on the Mac; 15 of 17 hand-written messages; 20 seconds, loading the model included |
 | Torch on an NVIDIA H100 80GB SXM (DigitalOcean, Ubuntu 22.04, driver 580, Python 3.13): the CrowdStrike example, trained and replayed for the whole day | Training 2 min 40 s with the download; 76% on held-back examples as on the A100; 99,806 decisions at 51.1 a second |
 
