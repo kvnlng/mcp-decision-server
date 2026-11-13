@@ -25,6 +25,7 @@ from .scenario import load_scenario
 SCHEMA = "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json"
 # The registry refuses longer descriptions
 DESCRIPTION_LIMIT = 100
+TITLE_LIMIT = 100
 _NAME = re.compile(r"[A-Za-z0-9.-]+/[A-Za-z0-9._-]+")
 _VERSION = re.compile(r"\d+\.\d+\.\d+([-+][0-9A-Za-z.-]+)?")
 
@@ -94,15 +95,20 @@ def _check(name: str, url: str, version: str, auth: str) -> None:
 
 
 def server_json(path: str, name: str, url: str, version: str, auth: str, *,  # pylint: disable=too-many-arguments
-                description: str | None = None, repository: str | None = None) -> dict:
+                description: str | None = None, repository: str | None = None, title: str | None = None) -> dict:
     """The registry entry for the server of `path` (a scenario or an environment) at `url`; raises ValueError naming
     the setting that is wrong."""
     _check(name, url, version, auth)
+    if title is not None and not 1 <= len(title) <= TITLE_LIMIT:
+        raise ValueError(f"--title: 1 to {TITLE_LIMIT} characters, the registry's limit, not {len(title)}")
     remote: dict = {"type": "streamable-http", "url": url}
     if auth == "key":
         remote["headers"] = [{"name": "Authorization", "description": "Bearer <the server's key>",
                               "isRequired": True, "isSecret": True}]
-    server: dict = {"$schema": SCHEMA, "name": name, "description": _description(path, description), "version": version}
+    server: dict = {"$schema": SCHEMA, "name": name}
+    if title is not None:
+        server["title"] = title
+    server.update(description=_description(path, description), version=version)
     if repository:
         server["repository"] = {"url": repository, "source": _source(repository)}
     server["remotes"] = [remote]
@@ -121,11 +127,12 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--description", help=f"at most {DESCRIPTION_LIMIT} characters (default: the environment's "
                                               "name)")
     parser.add_argument("--repository", help="the source repository's URL")
+    parser.add_argument("--title", help=f"a display name, at most {TITLE_LIMIT} characters")
     parser.add_argument("--out", default="server.json")
     args = parser.parse_args(argv)
     try:
         server = server_json(args.scenario, args.name, args.url, args.version, args.auth,
-                             description=args.description, repository=args.repository)
+                             description=args.description, repository=args.repository, title=args.title)
     except ValueError as error:
         print(f"error: {error}", file=sys.stderr)
         return 2

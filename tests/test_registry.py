@@ -130,3 +130,21 @@ def test_a_file_that_is_missing_or_broken_is_refused_with_a_description(tmp_path
     path = tmp_path / "scenario.toml" if broken is None else write_scenario(broken)
     with pytest.raises(ValueError):
         registry.server_json(str(path), "io.github.you/x", URL, "0.1.0", "key", description="hi")
+
+
+def test_a_title_is_listed_when_given():
+    assert entry(title="Tariff sourcing")["title"] == "Tariff sourcing"
+    assert "title" not in entry()
+
+
+@pytest.mark.parametrize("title", ["", "x" * 101])
+def test_a_title_must_be_1_to_100_characters(title):
+    with pytest.raises(ValueError, match="--title: 1 to 100 characters"):
+        entry(title=title)
+
+
+def test_main_writes_the_title(tmp_path):
+    out = tmp_path / "server.json"
+    assert registry.main([str(TARIFF), "--name", "io.github.kvnlng/tariff", "--url", URL, "--version", "0.1.0",
+                          "--title", "Tariff sourcing", "--out", str(out)]) == 0
+    assert json.loads(out.read_text(encoding="utf-8"))["title"] == "Tariff sourcing"
